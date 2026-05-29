@@ -1,0 +1,30 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from voice_pipeline.runtime.bootstrap import bootstrap_runtime
+from voice_pipeline.runtime.config import RuntimeConfig
+
+
+def test_bootstrap_runtime_returns_single_process_runtime(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("voice_pipeline.runtime.bootstrap.hardware_admission_check", lambda config: None)
+    monkeypatch.setattr("voice_pipeline.runtime.bootstrap._bind_cuda_device", lambda device_name: None)
+    monkeypatch.setattr("voice_pipeline.runtime.bootstrap._warm_asr_engine", lambda asr, config, session_id: True)
+    monkeypatch.setattr("voice_pipeline.runtime.bootstrap._warm_vllm_engine", lambda vllm, config: True)
+    monkeypatch.setattr("voice_pipeline.runtime.bootstrap._warm_tts_engine", lambda tts, config, session_id: True)
+
+    runtime = bootstrap_runtime(
+        session_id="integration-inference",
+        config=RuntimeConfig(
+            asr_model_path=str(tmp_path),
+            vllm_model_path=str(tmp_path),
+            vllm_cache_dir=str(tmp_path / "vllm-cache"),
+            cosyvoice3_model_path=str(tmp_path),
+            cosyvoice3_cache_dir=str(tmp_path / "cosy-cache"),
+        ),
+    )
+
+    assert runtime is not None
+    assert runtime.asr is not None
+    assert runtime.vllm is not None
+    assert runtime.tts is not None

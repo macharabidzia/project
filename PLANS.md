@@ -1,0 +1,601 @@
+# PLANS.md
+
+## ExecPlan: Production hardening for single-process Voice Pipeline
+
+### Current state
+- Repository already contains a mostly wired single-process runtime under `apps/api/src/voice_pipeline`.
+- `KernelRuntime` reducer/dispatch loop exists and ASR/vLLM/TTS are connected through authority events.
+- Startup/determinism guard scripts and multiple runtime tests already exist but require final hardening pass and evidence run.
+- Root `ARCHITECTURE.md` now exists and codifies the single-process authority contract alongside `AGENTS.md` and `plan.md`.
+- Real backend smoke currently depends on local model artifacts configured via environment.
+
+### Desired state
+- Production-hardened one-process runtime with strict authority in `KernelRuntime`.
+- Canonical live path only: 20ms PCM -> CPU Vosk streaming -> Kernel stable-prefix/reducer -> vLLM token streaming on `cuda:0` -> Kernel fragment commit -> CosyVoice3 native bi-stream incremental PCM on `cuda:1` -> PCM clock egress.
+- Deterministic offline startup, explicit fail-fast on missing/mismatched model/cache/device topology, no silent fallback/remap.
+- Drift guards and CI checks enforce architectural boundaries and anti-regression rules.
+- Replay determinism parity and latency/interrupt gates are measured and reported.
+
+### Phase list
+1. Phase 1: Contract codification and hard drift gates (docs, assertions, static guards, tests).
+2. Phase 2: Deterministic offline startup/warmup/cache identity and readiness gating.
+3. Phase 3: CPU Vosk native streaming ASR contract enforcement and tests.
+4. Phase 4: Kernel-only authority, reducer outputs, dispatch ownership, interrupt/reset/stale suppression tests.
+5. Phase 5: vLLM `cuda:0` streaming + stable-prefix cache behavior tests.
+6. Phase 6: CosyVoice3 `cuda:1` native bi-stream only, no fake streaming path, tests.
+7. Phase 7: Continuous bi-directional audio, barge-in, stale PCM suppression, bounded queue policy.
+8. Phase 8: Latency/observability/replay gates + CI drift audits.
+9. Phase 9: Runnable scripts and production runbook from dry-run to real smoke/benchmark.
+
+### Files to change
+- Runtime core:
+  - `apps/api/src/voice_pipeline/runtime/config.py`
+  - `apps/api/src/voice_pipeline/runtime/admission_gate.py`
+  - `apps/api/src/voice_pipeline/runtime/bootstrap.py`
+  - `apps/api/src/voice_pipeline/runtime/server.py`
+  - `apps/api/src/voice_pipeline/kernel/kernel_runtime.py`
+  - `apps/api/src/voice_pipeline/kernel/reducer.py`
+- Worker lanes:
+  - `apps/api/src/voice_pipeline/stt/asr_engine.py`
+  - `apps/api/src/voice_pipeline/gpu/vllm_worker/engine.py`
+  - `apps/api/src/voice_pipeline/gpu/tts_worker/engine.py`
+  - `apps/api/src/voice_pipeline/transport/pcm_clock.py`
+- Governance/scripts/docs:
+  - `apps/api/scripts/check_drift_guards.py`
+  - `apps/api/scripts/check_startup_contract.py`
+  - `scripts/run_drift_audit.py`
+  - `scripts/run_warmup_check.py`
+  - `scripts/run_mocked_e2e.py`
+  - `scripts/run_real_vosk_smoke.py`
+  - `scripts/run_real_vllm_smoke.py`
+  - `scripts/run_real_cosyvoice3_smoke.py`
+  - `scripts/run_real_backend_smoke.py`
+  - `scripts/run_latency_benchmark.py`
+  - `scripts/run_replay_determinism.py`
+  - `README.md`
+
+### Tests to add
+- `apps/api/tests/test_runtime_server_contract.py` for readiness/runtime payload contract keys.
+- `apps/api/tests/test_runtime_server_ws.py` for strict framed WS 20ms ingress + PCM egress path.
+- Additional/updated tests in:
+  - `apps/api/tests/test_startup_contract.py`
+  - `apps/api/tests/test_integrated_speech_runtime.py`
+  - `apps/api/tests/test_integrated_inference_runtime.py`
+
+### Commands to run
+- Required drift scans:
+  - `rg "ASREngine.*VLLMEngine|VLLMEngine.*TTSEngine|TTSEngine.*VLLMEngine" apps/api/src/voice_pipeline`
+  - `rg "plan_tts_fragment|detect_stable_prefix|pressure_score" apps/api/src/voice_pipeline/runtime`
+  - `rg "docker|grpc|rpc|remote worker|subprocess|multiprocessing" apps/api/src/voice_pipeline`
+  - `rg "_fallback_stream_pcm|zero_shot|full_text|non_streaming|batch_tts" apps/api/src/voice_pipeline/gpu/tts_worker`
+  - `rg "transcribe_file|wavfile|full_audio|batch_asr" apps/api/src/voice_pipeline/stt`
+  - `rg "from_pretrained\\(|snapshot_download|hf_hub_download|download_model|requests|get\\(|httpx|urllib" apps/api/src/voice_pipeline`
+- Guard/test/benchmark commands:
+  - `python apps/api/scripts/check_drift_guards.py`
+  - `python apps/api/scripts/check_startup_contract.py`
+  - `python scripts/run_drift_audit.py`
+  - `python -m pytest apps/api/tests -q`
+  - `python scripts/run_mocked_e2e.py`
+  - `python scripts/run_replay_determinism.py`
+  - `python scripts/run_warmup_check.py`
+  - `python scripts/run_real_backend_smoke.py`
+  - `python scripts/run_latency_benchmark.py`
+
+### Rollback notes
+- Revert only the smallest failing phase-specific change; keep kernel authority contracts and startup checks intact.
+- Re-run drift scans and startup contract checks immediately after rollback.
+- Do not relax device-binding assertions or readiness gates during rollback.
+
+### Drift risks
+- Reintroduction of worker-to-worker shortcuts bypassing `KernelRuntime`.
+- Reintroduction of non-streaming/batch fallback in hot path.
+- Runtime-level policy logic outside reducer (`stable_prefix`, fragment planning, pressure policy).
+- Hidden network/download paths in startup/hot path.
+- Silent GPU fallback/remap when required device is unavailable.
+
+### Model/GPU assumptions
+- `VOSK_MODEL_PATH`, `VLLM_MODEL_PATH`, `VLLM_CACHE_DIR`, `COSYVOICE3_MODEL_PATH`, `COSYVOICE3_CACHE_DIR` are configured to local filesystem paths.
+- Optional `COSYVOICE3_SPEAKER_PATH` may be configured and hashed into identity.
+- Production host exposes at least 2 CUDA devices (`cuda:0`, `cuda:1`).
+- ASR remains CPU-only and receives 20ms PCM after ingress resampling contract.
+
+### Required guard scan baseline and justification
+- Command `rg "_fallback_stream_pcm|zero_shot|full_text|non_streaming|batch_tts" apps/api/src/voice_pipeline/gpu/tts_worker` now returns no matches in live TTS runtime source.
+- Command `rg "from_pretrained\\(|snapshot_download|hf_hub_download|download_model|requests|get\\(|httpx|urllib" apps/api/src/voice_pipeline` may match many `dict.get(` callsites because of the broad `get\(` token.
+- Justification: these are local dictionary access patterns, not network fetches; dedicated startup guard script enforces concrete network/download symbol blacklist in startup files.
+
+### Execution log
+- 2026-05-29: ExecPlan written and baseline guard-scan justifications recorded before implementation edits.
+- 2026-05-29: Hardened kernel queue/tick discipline:
+  - added bounded `max_events_per_tick`
+  - priority dispatch order (`interrupts` > `ASR finals` > `ASR partials` > `LLM` > `TTS` > telemetry)
+  - protected-event queue policy (never drop queued `InterruptRequested`/`CancelRequested`/`ASRFinalReceived`)
+  - superseded partial drop behavior in ingress queue
+  - stale engine-output suppression in live tick path.
+- 2026-05-29: Hardened runtime execution path:
+  - fixed recursive `run_tick_and_dispatch` lock deadlock risk
+  - initially added runtime-side barge-in interrupt injection (`SOFT_PRE_INTERRUPT` / `HARD_INTERRUPT`); later removed and migrated fully into kernel reducer authority
+  - added stale stream stop checks in vLLM/TTS dispatch loops by authoritative request/output-version.
+- 2026-05-29: Hardened startup/warmup contract:
+  - removed non-strict warmup toggles from runtime config surface
+  - startup now always enforces strict warm readiness across ASR/vLLM/TTS
+  - removed implicit model ID substitution in `RuntimeConfig` path resolution
+  - added async warm probes for vLLM first token and CosyVoice3 first PCM.
+- 2026-05-29: Hardened TTS lane semantics:
+  - removed local token chunking in TTS worker
+  - preserved kernel fragment boundaries into native CosyVoice inference calls.
+- 2026-05-29: Added/updated tests for:
+  - kernel queue/tick bounds and stale suppression
+  - runtime barge-in interrupts
+  - native TTS fragment pass-through
+  - strict warmup contract and updated bootstrap warm-order test behavior.
+- 2026-05-29: Architecture prune and hard-delete pass:
+  - removed dead worker executors (`gpu/tts_worker/executor.py`, `gpu/vllm_worker/executor.py`)
+  - removed dead/unused runtime drift modules (`kernel/backpressure.py`, `kernel/invariants.py`, `kernel/replay.py`)
+  - removed dead helper modules outside live path (`stt/stream.py`, `transport/frame_adapter.py`, `shared/audio.py`)
+  - removed `hot_reload_enabled` from runtime config
+  - regenerated `overview.md` and dependency/symbol docs to remove stale references.
+- 2026-05-29: Drift-guard hardening pass:
+  - expanded `apps/api/scripts/check_drift_guards.py` with explicit checks for:
+    - runtime policy-helper leakage (`plan_tts_fragment`, `detect_stable_prefix`, `pressure_score`)
+    - startup/live network or implicit download symbols
+    - ASR/vLLM/TTS cross-lane imports
+    - reintroduction of deleted drift modules.
+- 2026-05-29: Contract lock cleanup pass:
+  - removed hot-reload/degraded-state wording drift from `AGENTS.md` and `ARCHITECTURE.md`
+  - removed all `__pycache__` directories from workspace for clean runtime tree
+  - hardened `apps/api/scripts/check_drift_guards.py` to fail on any `hot_reload` token in runtime source.
+- 2026-05-29: Startup guard hardening pass:
+  - expanded `apps/api/scripts/check_startup_contract.py` from network-only scanning to enforce:
+    - required model/cache env key presence in runtime config source
+    - absence of forbidden runtime toggles (`warm_strict`, `warmup_required`, `hot_reload_enabled`)
+    - strict topology contract assertions (`cpu`, `cuda:0`, `cuda:1`, `frame_ms=20`)
+    - strict warmup calls and warmup order (ASR -> vLLM -> TTS)
+    - hardware admission and CUDA-count validation tokens
+    - strict startup failure on non-READY warm lanes
+    - dry-run CLI topology contract output path.
+- 2026-05-29: Environment guard hardening pass:
+  - hardened `scripts/check_runtime_env.py` to fail on:
+    - remote URL model/cache paths
+    - topology/device/frame drift (`cpu`, `cuda:0`, `cuda:1`, `20ms`)
+  - retained explicit fail-fast output for missing local model artifacts.
+- 2026-05-29: Native bi-stream lock pass:
+  - removed `cosyvoice_stream` / `VOICE_PIPELINE_COSYVOICE_STREAM` runtime toggle surface
+  - forced live runtime TTS dispatch to call engine with `stream=True` only
+  - added runtime error guard `tts_native_bistream_required` when non-stream mode is requested
+  - updated real CosyVoice3 smoke script construction path to use strict streaming mode only.
+- 2026-05-29: Authority guard hardening continuation:
+  - expanded `apps/api/scripts/check_drift_guards.py` to fail on:
+    - non-stream TTS toggle symbols (`cosyvoice_stream`, `VOICE_PIPELINE_COSYVOICE_STREAM`)
+    - `KernelRuntime.apply_event(...)` usage outside `kernel/kernel_runtime.py` (authority bypass)
+  - revalidated startup/drift/import/single-writer audits and full API test suite.
+- 2026-05-29: Kernel-only barge-in authority pass:
+  - moved interrupt policy emission (`SOFT_PRE_INTERRUPT`, `HARD_INTERRUPT`) fully into reducer logic.
+  - removed runtime-side semantic interrupt injection path from `runtime/bootstrap.py`.
+  - added reducer replay marker handling for ASR partial/final continuation after interrupt-driven epoch reset.
+  - hardened derived-event sequencing in `KernelRuntime.apply_event()` to preserve monotonic sequence validation through nested derived-event chains.
+- 2026-05-29: Requirement-by-requirement production audit artifact:
+  - added `docs/production_readiness_audit.md` mapping `AGENTS.md` and `ARCHITECTURE.md` requirements to current proof.
+  - documented satisfied items and explicit external blocker scope for real-model signoff.
+
+### Changed files (this hardening pass)
+- `PLANS.md`
+- `apps/api/src/voice_pipeline/runtime/config.py`
+- `apps/api/src/voice_pipeline/runtime/bootstrap.py`
+- `apps/api/src/voice_pipeline/kernel/kernel_runtime.py`
+- `docs/production_readiness_audit.md` (new)
+- `README.md`
+- `apps/api/src/voice_pipeline/kernel/reducer.py`
+- `apps/api/src/voice_pipeline/gpu/tts_worker/engine.py`
+- `apps/api/src/voice_pipeline/gpu/vllm_worker/engine.py`
+- `apps/api/src/voice_pipeline/stt/__init__.py`
+- `apps/api/src/voice_pipeline/gpu/tts_worker/executor.py` (deleted)
+- `apps/api/src/voice_pipeline/gpu/vllm_worker/executor.py` (deleted)
+- `apps/api/src/voice_pipeline/kernel/backpressure.py` (deleted)
+- `apps/api/src/voice_pipeline/kernel/invariants.py` (deleted)
+- `apps/api/src/voice_pipeline/kernel/replay.py` (deleted)
+- `apps/api/src/voice_pipeline/stt/stream.py` (deleted)
+- `apps/api/src/voice_pipeline/transport/frame_adapter.py` (deleted)
+- `apps/api/src/voice_pipeline/shared/audio.py` (deleted)
+- `apps/api/tests/test_stream_spine_guardrails.py`
+- `apps/api/tests/test_runtime_bootstrap_warm.py`
+- `apps/api/tests/test_startup_contract.py`
+- `apps/api/tests/test_runtime_barge_interrupt.py` (new)
+- `apps/api/tests/test_tts_native_streaming.py` (new)
+- `apps/api/tests/test_strict_model_loading_contract.py` (new)
+- `docs/voice_pipeline_symbol_inventory.json`
+- `docs/voice_pipeline_dependency_snapshot.json`
+- `overview.md`
+- `AGENTS.md`
+- `ARCHITECTURE.md`
+- `apps/api/scripts/check_drift_guards.py`
+- `apps/api/src/voice_pipeline/kernel/reducer.py`
+- `apps/api/src/voice_pipeline/runtime/bootstrap.py`
+- `apps/api/src/voice_pipeline/kernel/ordering.py`
+- `apps/api/src/voice_pipeline/kernel/kernel_runtime.py`
+- `apps/api/scripts/check_startup_contract.py`
+- `scripts/check_runtime_env.py`
+- `apps/api/tests/test_strict_model_loading_contract.py` (new)
+- `scripts/run_real_cosyvoice3_smoke.py`
+- `apps/api/scripts/check_drift_guards.py`
+
+### Tests and commands run (latest)
+- `python -m pytest apps/api/tests -q` -> `50 passed`
+- `python apps/api/scripts/check_drift_guards.py` -> `ok`
+- `python apps/api/scripts/check_startup_contract.py` -> `ok`
+- `python scripts/run_drift_audit.py` -> `ok`
+- `python scripts/run_mocked_e2e.py` -> pass (`3 passed`)
+- `python scripts/run_replay_determinism.py` -> pass (`4 passed`)
+- `python scripts/run_latency_benchmark.py` -> pass mocked latency contract (`2 passed`)
+- `python scripts/check_runtime_env.py` -> fail-fast as expected (missing local model artifact paths)
+- `python scripts/run_warmup_check.py` -> fail-fast as expected (missing local model artifacts)
+- `python scripts/run_real_vosk_smoke.py` -> fail-fast as expected (missing Vosk model path)
+- `python scripts/run_real_vllm_smoke.py` -> fail-fast as expected (missing vLLM model path)
+- `python scripts/run_real_cosyvoice3_smoke.py` -> fail-fast as expected (missing CosyVoice3 model path)
+- `python scripts/run_real_backend_smoke.py` -> fail-fast as expected (lane smoke prerequisite failure)
+- `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+- 2026-05-29 continuation verification (non-real-smoke pass):
+  - required `rg` drift scans -> pass (only expected `dict.get(` broad-pattern hits)
+  - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+  - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+  - `python scripts/run_drift_audit.py` -> `ok`
+  - `python -m pytest apps/api/tests -q` -> `50 passed`
+  - `python scripts/run_mocked_e2e.py` -> `3 passed`
+  - `python scripts/run_replay_determinism.py` -> `4 passed`
+  - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+  - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+- `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifact paths)
+- post-guard-hardening verification:
+  - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+  - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+  - `python scripts/run_drift_audit.py` -> `ok`
+  - `python -m pytest apps/api/tests -q` -> `50 passed`
+  - `python scripts/run_mocked_e2e.py` -> `3 passed`
+  - `python scripts/run_replay_determinism.py` -> `4 passed`
+  - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+- contract-lock continuation verification:
+  - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+  - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+  - `python scripts/run_drift_audit.py` -> `ok`
+  - `python -m pytest apps/api/tests -q` -> `57 passed`
+  - `python scripts/run_mocked_e2e.py` -> `3 passed`
+  - `python scripts/run_replay_determinism.py` -> `4 passed`
+  - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+  - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+  - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts; fixed topology keys validated)
+- authority-guard continuation verification:
+  - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+  - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+  - `python scripts/run_drift_audit.py` -> `ok`
+  - `python -m pytest apps/api/tests -q` -> `57 passed`
+  - `python scripts/run_mocked_e2e.py` -> `3 passed`
+  - `python scripts/run_replay_determinism.py` -> `4 passed`
+  - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+  - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- kernel-authority continuation verification:
+  - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+  - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+  - `python scripts/run_drift_audit.py` -> `ok`
+  - `python -m pytest apps/api/tests -q` -> `59 passed`
+  - `python scripts/run_mocked_e2e.py` -> `3 passed`
+  - `python scripts/run_replay_determinism.py` -> `4 passed`
+  - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+  - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- post-kernel-authority verification refresh:
+  - `python scripts/run_drift_audit.py` -> `ok`
+  - `python -m pytest apps/api/tests -q` -> `59 passed`
+  - `python scripts/run_mocked_e2e.py` -> `3 passed`
+  - `python scripts/run_replay_determinism.py` -> `4 passed`
+  - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+  - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- audit-artifact verification refresh:
+  - `python scripts/run_drift_audit.py` -> `ok`
+  - `python -m pytest apps/api/tests -q` -> `59 passed`
+  - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+  - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 hard-delete continuation:
+  - removed remaining live TTS `zero_shot` symbol matches from hot-path source via native-stream resolver rename
+  - regenerated docs artifacts (`overview.md`, symbol/dependency inventory) to remove stale deleted-symbol references
+  - removed residual test-only `zero_shot` helper naming in native TTS test double
+  - `rg "_fallback_stream_pcm|zero_shot|full_text|non_streaming|batch_tts" apps/api/src/voice_pipeline/gpu/tts_worker` -> no matches
+  - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+  - `python -m pytest apps/api/tests -q` -> `60 passed`
+  - `python scripts/run_drift_audit.py` -> `ok`
+  - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+  - `python scripts/run_mocked_e2e.py` -> `3 passed`
+  - `python scripts/run_replay_determinism.py` -> `4 passed`
+  - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+- 2026-05-29 strict-live-lane cleanup continuation:
+  - removed ASR live-path auto-warm behavior; `ASREngine.ingest_audio()` now fails fast when not warmed and no longer gates recognizer ingest behind local VAD shortcuts.
+  - tightened strict local model path checks in ASR and vLLM warm paths (explicit missing-path fail-fast).
+  - enforced authority request-id requirement for vLLM stream calls (`vllm_request_id_required`), removing random-id fallback drift.
+  - tightened TTS warm/session semantics: `is_warm` now requires live model residency, `start_persistent_session()` requires warmed model, and `stream_pcm()` rejects non-warm use.
+  - removed non-authoritative TTS token-chunk API surface from runtime worker stream (`chunk_size_tokens` removed).
+  - removed broad generic TTS inference fallback; native stream resolver now limits candidates to native bi-stream/stream interfaces only.
+  - deleted unused STT drift modules:
+    - `apps/api/src/voice_pipeline/stt/frame_buffer.py`
+    - `apps/api/src/voice_pipeline/stt/vad.py`
+  - tightened import/drift guards:
+    - worker lanes (`stt`/`gpu`/`transport`) are now blocked from importing kernel authority internals.
+    - guard now fails on ASR auto-warm patterns, generic TTS inference fallback, and random vLLM request-id fallback.
+    - guard now treats deleted STT drift files as forbidden reintroduction paths.
+  - added strictness tests:
+    - `apps/api/tests/test_live_lane_strictness.py` (new)
+    - expanded `apps/api/tests/test_strict_model_loading_contract.py` for missing-path fail-fast checks.
+  - verification refresh:
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests -q` -> `66 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - required contract `rg` scans -> pass (`NO_MATCH`), except broad `get\(` pattern hits in network/download scan (documented false-positive class).
+- 2026-05-29 readiness/evidence tightening continuation:
+  - added explicit kernel readiness state to runtime status and global readiness gate (`worker_status.kernel` + `global_ready()` check).
+  - readiness payload now reports kernel status from runtime worker state instead of constant literal.
+  - added direct ASR streaming contract tests with fake Vosk module:
+    - partial then final event emission shape
+    - finalize fallback to pending partial when recognizer final payload is empty
+  - regenerated docs inventory/overview after runtime source changes.
+  - verification refresh:
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests -q` -> `68 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+    - required contract `rg` scans -> pass (`NO_MATCH`), except broad `get\(` pattern hits in network/download scan (documented false-positive class).
+- 2026-05-29 readiness-contract and stale-egress evidence continuation:
+  - fixed runtime readiness endpoint to compute readiness from explicit ASR/vLLM/TTS/Kernel/Transport checks, preventing false-positive READY when kernel lane is not READY.
+  - expanded startup contract guard to assert kernel-ready token is present in runtime bootstrap readiness path.
+  - added direct PCM egress stale/overflow contract tests:
+    - stale epoch/output-version frames are dropped before emit (`dropped_stale_frames` increments).
+    - bounded queue overflow behavior is enforced (`dropped_overflow_frames` increments).
+  - added API readiness negative test proving `kernel_status != READY` forces `ready=false`/`session_eligible=false`.
+  - regenerated docs inventory/overview after readiness-path updates.
+  - verification refresh:
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+    - required contract `rg` scans -> pass (`NO_MATCH`), except broad `get\(` pattern hits in network/download scan (documented false-positive class).
+- 2026-05-29 strict-env-surface cleanup continuation:
+  - removed legacy runtime env alias fallbacks from runtime config:
+    - `VOICE_PIPELINE_VLLM_MODEL_PATH`
+    - `VOICE_PIPELINE_VLLM_CACHE_DIR`
+    - `VOICE_PIPELINE_COSYVOICE_CACHE_DIR`
+  - removed unused duplicate runtime config field `asr_input_sample_rate`.
+  - tightened startup contract guard to fail if legacy alias tokens or removed config field token reappear in runtime config source.
+  - expanded startup contract test coverage to assert removed config field cannot be passed to `RuntimeConfig`.
+  - regenerated docs inventory/overview after config cleanup.
+  - verification refresh:
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - required contract `rg` scans -> pass (`NO_MATCH`)
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 browser-ingress boundedness continuation:
+  - removed dynamic/unbounded PCM worklet buffer growth in browser capture path.
+  - implemented bounded capture buffering with oldest-frame drop-on-overflow policy in `pcm-capture-worklet.js`.
+  - added playback scheduling horizon clamp in web app audio sink to prevent unbounded client-side playout backlog growth when inbound PCM bursts.
+  - regenerated docs inventory/overview after web/runtime updates.
+  - verification refresh:
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 frontend-contract guard continuation:
+  - added `scripts/check_frontend_contract.py` to enforce browser-side capture/playout contract invariants:
+    - fixed 20ms capture framing (`frameSamples=960`)
+    - bounded capture buffer with overflow drop accounting
+    - no dynamic buffer growth reintroduction
+    - fixed 48k capture configuration and playback backlog clamp in app runtime
+  - added frontend contract check into `scripts/run_drift_audit.py` so drift audit now includes runtime/startup/drift/frontend/single-writer checks together.
+  - verification refresh:
+    - `python scripts/check_frontend_contract.py` -> `frontend contract guard: ok`
+    - `python scripts/run_drift_audit.py` -> `ok` (includes frontend guard)
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 native-bistream-only hard-delete continuation:
+  - removed hidden CosyVoice compatibility fallback path in live TTS runtime: `_resolve_native_stream_inference()` now accepts only `inference_bistream`.
+  - deleted remaining non-native fallback references (`inference_stream`/`zero_shot`) from live runtime source and tightened drift guard regex to block reintroduction.
+  - updated native TTS streaming tests to validate against `inference_bistream` only.
+  - verification refresh:
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests/test_tts_native_streaming.py -q` -> `3 passed`
+    - `python -m pytest apps/api/tests/test_live_lane_strictness.py apps/api/tests/test_runtime_bootstrap_warm.py apps/api/tests/test_runtime_server_contract.py -q` -> `8 passed`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 transport-pcm-only hard-delete continuation:
+  - removed transport semantic/control message helpers from live runtime module:
+    - deleted `MSG_TOKEN_EVENT`, `MSG_CONTROL`, `MSG_ASR_EVENT`, `MSG_HEARTBEAT`
+    - deleted `encode_control_payload()`, `decode_control_payload()`, `encode_token_payload()`
+  - constrained transport known message types to framed `MSG_PCM_AUDIO` only.
+  - updated transport package exports and protocol tests to reflect PCM-only contract.
+  - hardened drift guard to fail if semantic/control transport helper symbols reappear.
+  - verification refresh:
+    - `python -m pytest apps/api/tests/test_transport_ws_framed_protocol.py -q` -> `4 passed`
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests -q` -> `70 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 strict-env-alias purge continuation:
+  - removed legacy env alias fallback surfaces from live worker/runtime paths:
+    - ASR input fallback alias removed (`VOICE_PIPELINE_ASR_INPUT_SAMPLE_RATE`).
+    - vLLM model fallback alias removed (`VOICE_PIPELINE_VLLM_MODEL`).
+    - CosyVoice model fallback alias removed (`VOICE_PIPELINE_COSYVOICE_MODEL_DIR`).
+    - CosyVoice prompt env fallback aliases removed (`COSYVOICE_PROMPT_TEXT`, `COSYVOICE_PROMPT_AUDIO_PATH`).
+  - removed runtime config prompt drift fields that were outside the locked architecture contract:
+    - `cosyvoice_prompt_text`
+    - `cosyvoice_prompt_audio_path`
+  - tightened warmup wiring to architecture-only surfaces:
+    - vLLM prefix prewarm now uses system cache key only (no TTS prompt coupling).
+    - TTS session warm path now consumes only configured `COSYVOICE3_SPEAKER_PATH` optional input.
+  - hardened drift/startup guards so removed aliases cannot re-enter.
+  - regenerated runtime docs artifacts to eliminate stale symbol drift from deleted transport/helper surfaces.
+  - verification refresh:
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests/test_strict_model_loading_contract.py -q` -> `8 passed`
+    - `python -m pytest apps/api/tests/test_runtime_bootstrap_warm.py apps/api/tests/test_live_lane_strictness.py -q` -> `5 passed`
+    - `python -m pytest apps/api/tests -q` -> `70 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 strict-toggle-surface hard-delete continuation:
+  - removed `strict_model_loading` toggle surfaces from live runtime engine configs/constructors:
+    - `ASRRuntimeConfig`
+    - `VLLMEngineConfig`
+    - `TTSEngineConfig` and `TTSEngine` ctor
+  - removed strict-loading toggle arguments from bootstrap/runtime lane construction and real-lane smoke helper scripts.
+  - added guardrails so strict-loading toggle token reintroduction fails:
+    - startup contract guard (`apps/api/scripts/check_startup_contract.py`)
+    - drift guard (`apps/api/scripts/check_drift_guards.py`)
+  - added/updated tests to enforce removed toggle API surface:
+    - `test_strict_loading_toggle_surface_removed` in `apps/api/tests/test_strict_model_loading_contract.py`
+    - updated ASR/TTS/vLLM strictness tests and fixtures to new non-toggle API.
+  - regenerated docs inventory/overview artifacts after source cleanup.
+  - verification refresh:
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests/test_strict_model_loading_contract.py apps/api/tests/test_live_lane_strictness.py apps/api/tests/test_tts_native_streaming.py apps/api/tests/test_asr_streaming_contract.py -q` -> `18 passed`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 native-stream-api-shape lock continuation:
+  - removed remaining TTS non-essential streaming toggle surface from live API shape:
+    - deleted `stream` field from `TTSEngineConfig`
+    - deleted `stream` ctor parameter from `TTSEngine`
+    - deleted `stream` parameter from `TTSEngine.stream_pcm()` and `TTSAudioStreamer.stream()`
+    - removed all runtime/script call-site `stream=True` toggles (native streaming is now structural behavior)
+  - updated TTS tests to assert non-streaming toggle is absent from API surface (`TypeError` on `stream=` kwarg) rather than runtime branch rejection.
+  - updated startup guard expectation to no longer require literal bootstrap `stream=True` token now that stream mode is no longer a configurable call-site surface.
+  - added drift guard rule to block reintroduction of `stream: bool` TTS signature toggles in `gpu/tts_worker`.
+  - regenerated docs inventory/overview artifacts after source/API cleanup.
+  - verification refresh:
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests/test_tts_native_streaming.py apps/api/tests/test_live_lane_strictness.py apps/api/tests/test_strict_model_loading_contract.py -q` -> `16 passed`
+    - `python -m pytest apps/api/tests/test_runtime_bootstrap_warm.py apps/api/tests/test_integrated_speech_runtime.py apps/api/tests/test_runtime_server_contract.py -q` -> `5 passed`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 shared-surface prune continuation:
+  - removed dead shared error shim module `apps/api/src/voice_pipeline/shared/errors.py` that was not used in live runtime paths.
+  - cleaned `shared/__init__.py` exports to remove stale `VoicePipelineError` / `DeterminismError` symbols from deleted module.
+  - hardened drift guard forbidden-path list to fail if deleted shim module is reintroduced.
+  - regenerated docs inventory/overview artifacts after source removal.
+  - verification refresh:
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 tts-config-surface prune continuation:
+  - removed unused `TTSEngineConfig` type and package export from `gpu/tts_worker` to reduce dead configuration surface.
+  - verification refresh:
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 non-recursive-dispatch hardening continuation:
+  - refactored runtime dispatch flow in `apps/api/src/voice_pipeline/runtime/bootstrap.py` to remove recursive `run_tick_and_dispatch()` re-entry from worker command handlers.
+  - added iterative command-drain primitives:
+    - `_tick_and_stamp_commands()`
+    - `_dispatch_commands()`
+  - vLLM and TTS command execution now drains nested kernel commands via iterative queue with same-kind command deferral guards (`blocked_kinds={"VLLM"}` / `{"TTS"}`), preventing recursive command path while preserving incremental event/PCM progression.
+  - removed now-unused `execute_dispatch_command()` path.
+  - tightened startup contract guard to enforce presence of non-recursive command-drain primitives and block legacy recursive token-dispatch pattern reintroduction.
+  - tightened drift guard to fail if legacy `execute_dispatch_command` entrypoint is reintroduced in runtime bootstrap.
+  - regenerated docs inventory/overview artifacts after runtime refactor.
+  - verification refresh:
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python scripts/run_drift_audit.py` -> `ok`
+    - `python -m pytest apps/api/tests/test_runtime_barge_interrupt.py apps/api/tests/test_runtime_server_ws.py apps/api/tests/test_integrated_speech_runtime.py apps/api/tests/test_integrated_inference_runtime.py -q` -> `6 passed`
+    - `python -m pytest apps/api/tests -q` -> `71 passed`
+    - `python scripts/run_mocked_e2e.py` -> `3 passed`
+    - `python scripts/run_replay_determinism.py` -> `4 passed`
+    - `python scripts/run_latency_benchmark.py` -> mocked contract `2 passed`
+    - `python scripts/run_voice_runtime.py --dry-run` -> `CPU ASR, GPU0 vLLM, GPU1 CosyVoice3`
+    - `python scripts/check_runtime_env.py` -> expected fail-fast (missing local model artifacts)
+- 2026-05-29 local-livekit transport migration continuation:
+  - removed manual framed websocket live path from runtime server and frontend.
+  - added local LiveKit transport config + runtime bridge:
+    - `apps/api/src/voice_pipeline/transport/livekit_transport.py`
+    - `apps/api/src/voice_pipeline/runtime/livekit_bridge.py`
+  - deleted manual websocket runtime module and endpoint:
+    - `apps/api/src/voice_pipeline/transport/ws_framed.py` (deleted)
+    - `/v1/voice/ws` removed from `runtime/server.py`
+    - `apps/web/public/pcm-capture-worklet.js` (deleted)
+  - added LiveKit token endpoints:
+    - `/v1/livekit/token`
+    - `/livekit/token`
+  - switched frontend mic/playback to `livekit-client` room connect/publish/subscribe flow.
+  - updated transport/server/architecture tests and drift/frontend guards for LiveKit-only contract.
+  - verification refresh:
+    - `python -m pytest apps/api/tests -q` -> `88 passed`
+    - `python apps/api/scripts/check_drift_guards.py` -> `ok`
+    - `python apps/api/scripts/check_startup_contract.py` -> `ok`
+    - `python scripts/check_frontend_contract.py` -> `frontend contract guard: ok`
+    - `python scripts/run_drift_audit.py` -> `drift-audit: ok`
+    - `cmd /c npm run build` (apps/web) -> pass
+    - `python scripts/generate_voice_pipeline_docs.py` -> regenerated `overview.md` + docs snapshots
+
+### Remaining known limitations
+- Real backend warmup/smoke and real target-machine E2E latency cannot be executed in this environment until these local artifacts exist:
+  - `D:/models/vosk/vosk-model-en-us-0.22`
+  - `D:/models/vllm/Qwen3-8B`
+  - `D:/models/cosyvoice3/Fun-CosyVoice3-0.5B-2512`
+- Cache directories are configured and present; only model artifact paths are missing.
+
+### Final status
+- Contract hardening, authority guards, startup assertions, queue policy, interrupt handling, and mocked determinism/latency validation are implemented and passing in CI-local execution.
+- Real-backend signoff remains blocked strictly by absent local model artifacts, with explicit fail-fast diagnostics in place.

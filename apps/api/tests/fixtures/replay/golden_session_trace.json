@@ -1,0 +1,10 @@
+{
+  "name": "golden_kernel_snapshot",
+  "expected": {
+    "turn_epoch": 1,
+    "committed_epoch": 0,
+    "generation_epoch": 0,
+    "partial_text": "hello there",
+    "should_respond": false
+  }
+}

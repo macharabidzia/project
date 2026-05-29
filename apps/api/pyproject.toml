@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voice-pipeline-api"
+version = "0.1.0"
+description = "Kernel-authoritative low-latency voice pipeline backend"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "livekit>=1.0.0",
+    "numpy>=2.1.0",
+    "orjson>=3.10.7",
+    "pydantic-settings>=2.5.2",
+    "python-dotenv>=1.0.1",
+    "soxr>=0.5.0.post1",
+    "structlog>=24.4.0",
+    "uvicorn[standard]>=0.30.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.6.9",
+    "sounddevice>=0.5.1",
+    "soundfile>=0.12.1",
+]
+asr = [
+    "vosk>=0.3.45",
+]
+tts = [
+    "torch>=2.4.1",
+    "torchaudio>=2.4.1",
+    "accelerate>=1.8,<2",
+    "transformers>=4.55,<5",
+]
+response-model = [
+    "accelerate>=1.8,<2",
+    "vllm>=0.11,<1.0",
+]
+gpu = [
+    "torch>=2.4.1",
+    "torchaudio>=2.4.1",
+    "accelerate>=1.8,<2",
+    "transformers>=4.55,<5",
+]
+
+[project.scripts]
+voice-pipeline-runtime = "voice_pipeline.runtime.cli:main"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.setuptools.packages.find]
+where = ["src"]

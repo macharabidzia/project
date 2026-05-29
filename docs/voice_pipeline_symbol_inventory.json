@@ -1,0 +1,2286 @@
+[
+  {
+    "path": "__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "bus/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "bus/ring_topology.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "_LaneRingView",
+        "doc": "",
+        "lineno": 10,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 11
+          },
+          {
+            "name": "push",
+            "kind": "method",
+            "doc": "",
+            "lineno": 16
+          },
+          {
+            "name": "pop",
+            "kind": "method",
+            "doc": "",
+            "lineno": 21
+          }
+        ]
+      },
+      {
+        "name": "RingTopology",
+        "doc": "",
+        "lineno": 40,
+        "methods": [
+          {
+            "name": "with_capacity",
+            "kind": "method",
+            "doc": "",
+            "lineno": 48
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "bus/ring_types.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "EventType",
+        "doc": "",
+        "lineno": 10,
+        "methods": []
+      },
+      {
+        "name": "LaneId",
+        "doc": "",
+        "lineno": 19,
+        "methods": []
+      },
+      {
+        "name": "SlotType",
+        "doc": "",
+        "lineno": 26,
+        "methods": []
+      },
+      {
+        "name": "KernelSlotABI",
+        "doc": "",
+        "lineno": 57,
+        "methods": []
+      },
+      {
+        "name": "RingSlot",
+        "doc": "",
+        "lineno": 109,
+        "methods": [
+          {
+            "name": "__post_init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 120
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "name": "event_type_lane",
+        "kind": "function",
+        "doc": "",
+        "lineno": 33
+      },
+      {
+        "name": "event_type_slot_type",
+        "kind": "function",
+        "doc": "",
+        "lineno": 45
+      },
+      {
+        "name": "assert_kernel_slot_abi",
+        "kind": "function",
+        "doc": "",
+        "lineno": 78
+      }
+    ]
+  },
+  {
+    "path": "bus/shm_ring.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "SharedMemoryRing",
+        "doc": "In-process bounded ring used by the single-runtime voice pipeline.",
+        "lineno": 13,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 16
+          },
+          {
+            "name": "capacity",
+            "kind": "method",
+            "doc": "",
+            "lineno": 29
+          },
+          {
+            "name": "depth",
+            "kind": "method",
+            "doc": "",
+            "lineno": 33
+          },
+          {
+            "name": "overwrite_count",
+            "kind": "method",
+            "doc": "",
+            "lineno": 37
+          },
+          {
+            "name": "shared_memory_name",
+            "kind": "method",
+            "doc": "",
+            "lineno": 41
+          },
+          {
+            "name": "oldest_age_ms",
+            "kind": "method",
+            "doc": "",
+            "lineno": 45
+          },
+          {
+            "name": "push",
+            "kind": "method",
+            "doc": "",
+            "lineno": 53
+          },
+          {
+            "name": "pop",
+            "kind": "method",
+            "doc": "",
+            "lineno": 66
+          },
+          {
+            "name": "drain",
+            "kind": "method",
+            "doc": "",
+            "lineno": 76
+          },
+          {
+            "name": "push_bytes",
+            "kind": "method",
+            "doc": "",
+            "lineno": 85
+          },
+          {
+            "name": "read_slot_bytes",
+            "kind": "method",
+            "doc": "",
+            "lineno": 115
+          },
+          {
+            "name": "close",
+            "kind": "method",
+            "doc": "",
+            "lineno": 119
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "governance/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "governance/single_writer_audit.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "AuditResult",
+        "doc": "",
+        "lineno": 10,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "_collect_violations",
+        "kind": "function",
+        "doc": "",
+        "lineno": 26
+      },
+      {
+        "name": "audit_single_writers",
+        "kind": "function",
+        "doc": "",
+        "lineno": 53
+      },
+      {
+        "name": "write_audit_artifact",
+        "kind": "function",
+        "doc": "",
+        "lineno": 65
+      }
+    ]
+  },
+  {
+    "path": "gpu/__init__.py",
+    "module_doc": "Compute workers for ASR, vLLM, and CosyVoice lanes.",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "gpu/tts_worker/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "gpu/tts_worker/engine.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "CosyVoiceBiStreamSession",
+        "doc": "",
+        "lineno": 14,
+        "methods": []
+      },
+      {
+        "name": "TTSEngine",
+        "doc": "",
+        "lineno": 21,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 22
+          },
+          {
+            "name": "is_warm",
+            "kind": "method",
+            "doc": "",
+            "lineno": 48
+          },
+          {
+            "name": "warm",
+            "kind": "method",
+            "doc": "",
+            "lineno": 51
+          },
+          {
+            "name": "start_persistent_session",
+            "kind": "method",
+            "doc": "",
+            "lineno": 72
+          },
+          {
+            "name": "reset",
+            "kind": "method",
+            "doc": "",
+            "lineno": 83
+          },
+          {
+            "name": "stream_pcm",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 87
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "name": "_iter_fragments",
+        "kind": "function",
+        "doc": "",
+        "lineno": 145
+      },
+      {
+        "name": "_resolve_native_stream_inference",
+        "kind": "function",
+        "doc": "",
+        "lineno": 157
+      },
+      {
+        "name": "_call_cosyvoice_native_stream",
+        "kind": "function",
+        "doc": "",
+        "lineno": 164
+      },
+      {
+        "name": "_tts_speech_to_pcm_bytes",
+        "kind": "function",
+        "doc": "",
+        "lineno": 185
+      }
+    ]
+  },
+  {
+    "path": "gpu/tts_worker/stream.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "TTSAudioStreamer",
+        "doc": "",
+        "lineno": 8,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 9
+          },
+          {
+            "name": "stream",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 12
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "gpu/vllm_worker/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "gpu/vllm_worker/engine.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "VLLMEngineConfig",
+        "doc": "",
+        "lineno": 10,
+        "methods": []
+      },
+      {
+        "name": "PrefixCacheStats",
+        "doc": "",
+        "lineno": 31,
+        "methods": [
+          {
+            "name": "hit_ratio",
+            "kind": "method",
+            "doc": "",
+            "lineno": 36
+          }
+        ]
+      },
+      {
+        "name": "VLLMEngine",
+        "doc": "GPU0 streaming token runtime backed by vLLM when available.",
+        "lineno": 52,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 55
+          },
+          {
+            "name": "is_warm",
+            "kind": "method",
+            "doc": "",
+            "lineno": 67
+          },
+          {
+            "name": "prefix_cache_ready",
+            "kind": "method",
+            "doc": "",
+            "lineno": 71
+          },
+          {
+            "name": "prewarm_prefix_cache",
+            "kind": "method",
+            "doc": "",
+            "lineno": 74
+          },
+          {
+            "name": "warm",
+            "kind": "method",
+            "doc": "",
+            "lineno": 82
+          },
+          {
+            "name": "cache_stats",
+            "kind": "method",
+            "doc": "",
+            "lineno": 123
+          },
+          {
+            "name": "stream_tokens",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 126
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "name": "build_prompt_cache_key",
+        "kind": "function",
+        "doc": "",
+        "lineno": 43
+      }
+    ]
+  },
+  {
+    "path": "gpu/vllm_worker/stream.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "VLLMTokenStreamer",
+        "doc": "",
+        "lineno": 9,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 10
+          },
+          {
+            "name": "stream",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 13
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "kernel/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "kernel/dispatch.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "DispatchCommand",
+        "doc": "",
+        "lineno": 11,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "build_vllm_command",
+        "kind": "function",
+        "doc": "",
+        "lineno": 17
+      },
+      {
+        "name": "build_tts_command",
+        "kind": "function",
+        "doc": "",
+        "lineno": 43
+      }
+    ]
+  },
+  {
+    "path": "kernel/invariant_loop.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "InvariantSnapshot",
+        "doc": "",
+        "lineno": 10,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "_no_partial_slot",
+        "kind": "function",
+        "doc": "",
+        "lineno": 16
+      },
+      {
+        "name": "_no_stale_epoch",
+        "kind": "function",
+        "doc": "",
+        "lineno": 24
+      },
+      {
+        "name": "pre_tick_validate",
+        "kind": "function",
+        "doc": "",
+        "lineno": 32
+      },
+      {
+        "name": "post_tick_validate",
+        "kind": "function",
+        "doc": "",
+        "lineno": 43
+      }
+    ]
+  },
+  {
+    "path": "kernel/kernel_runtime.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "KernelConfig",
+        "doc": "",
+        "lineno": 22,
+        "methods": [
+          {
+            "name": "reducer_config",
+            "kind": "method",
+            "doc": "",
+            "lineno": 35
+          }
+        ]
+      },
+      {
+        "name": "KernelCommitResult",
+        "doc": "",
+        "lineno": 48,
+        "methods": []
+      },
+      {
+        "name": "KernelRuntime",
+        "doc": "",
+        "lineno": 55,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 56
+          },
+          {
+            "name": "topology",
+            "kind": "method",
+            "doc": "",
+            "lineno": 84
+          },
+          {
+            "name": "rings",
+            "kind": "method",
+            "doc": "",
+            "lineno": 88
+          },
+          {
+            "name": "state",
+            "kind": "method",
+            "doc": "",
+            "lineno": 92
+          },
+          {
+            "name": "event_log",
+            "kind": "method",
+            "doc": "",
+            "lineno": 96
+          },
+          {
+            "name": "queued_event_count",
+            "kind": "method",
+            "doc": "",
+            "lineno": 100
+          },
+          {
+            "name": "next_sequence_no",
+            "kind": "method",
+            "doc": "",
+            "lineno": 103
+          },
+          {
+            "name": "current_lease",
+            "kind": "method",
+            "doc": "",
+            "lineno": 106
+          },
+          {
+            "name": "_commit_transition",
+            "kind": "method",
+            "doc": "",
+            "lineno": 109
+          },
+          {
+            "name": "apply_event",
+            "kind": "method",
+            "doc": "",
+            "lineno": 113
+          },
+          {
+            "name": "replay",
+            "kind": "method",
+            "doc": "",
+            "lineno": 169
+          },
+          {
+            "name": "enqueue_event",
+            "kind": "method",
+            "doc": "",
+            "lineno": 175
+          },
+          {
+            "name": "tick",
+            "kind": "method",
+            "doc": "",
+            "lineno": 187
+          },
+          {
+            "name": "_is_protected_event_type",
+            "kind": "method",
+            "doc": "",
+            "lineno": 236
+          },
+          {
+            "name": "_event_priority",
+            "kind": "method",
+            "doc": "",
+            "lineno": 240
+          },
+          {
+            "name": "_drop_superseded_partial_events",
+            "kind": "method",
+            "doc": "",
+            "lineno": 254
+          },
+          {
+            "name": "_evict_low_priority_for_protected_event",
+            "kind": "method",
+            "doc": "",
+            "lineno": 269
+          },
+          {
+            "name": "_pop_next_queued_event",
+            "kind": "method",
+            "doc": "",
+            "lineno": 283
+          },
+          {
+            "name": "_with_sequence_no",
+            "kind": "method",
+            "doc": "",
+            "lineno": 300
+          },
+          {
+            "name": "_is_suppressible_stale_engine_output",
+            "kind": "method",
+            "doc": "",
+            "lineno": 314
+          },
+          {
+            "name": "commit_tick",
+            "kind": "method",
+            "doc": "",
+            "lineno": 327
+          },
+          {
+            "name": "runtime_metrics",
+            "kind": "method",
+            "doc": "",
+            "lineno": 332
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "kernel/latency_contract.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "LaneLatencyBudget",
+        "doc": "",
+        "lineno": 11,
+        "methods": []
+      },
+      {
+        "name": "PipelineLatencySample",
+        "doc": "",
+        "lineno": 22,
+        "methods": [
+          {
+            "name": "total_ms",
+            "kind": "method",
+            "doc": "",
+            "lineno": 31
+          }
+        ]
+      },
+      {
+        "name": "LatencyDecision",
+        "doc": "",
+        "lineno": 36,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "evaluate_latency",
+        "kind": "function",
+        "doc": "",
+        "lineno": 42
+      }
+    ]
+  },
+  {
+    "path": "kernel/leases.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "EpochLease",
+        "doc": "",
+        "lineno": 10,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "epoch_id_for_state",
+        "kind": "function",
+        "doc": "",
+        "lineno": 16
+      },
+      {
+        "name": "lease_snapshot",
+        "kind": "function",
+        "doc": "",
+        "lineno": 23
+      }
+    ]
+  },
+  {
+    "path": "kernel/ordering.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "OrderedEventKey",
+        "doc": "",
+        "lineno": 12,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "ordering_key",
+        "kind": "function",
+        "doc": "",
+        "lineno": 19
+      },
+      {
+        "name": "expected_next_sequence",
+        "kind": "function",
+        "doc": "",
+        "lineno": 34
+      },
+      {
+        "name": "make_derived_event",
+        "kind": "function",
+        "doc": "",
+        "lineno": 38
+      },
+      {
+        "name": "push_front",
+        "kind": "function",
+        "doc": "",
+        "lineno": 59
+      }
+    ]
+  },
+  {
+    "path": "kernel/recovery.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "RecoverySnapshot",
+        "doc": "",
+        "lineno": 10,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "build_recovery_snapshot",
+        "kind": "function",
+        "doc": "",
+        "lineno": 19
+      },
+      {
+        "name": "recovering_status",
+        "kind": "function",
+        "doc": "",
+        "lineno": 35
+      },
+      {
+        "name": "recovered_status",
+        "kind": "function",
+        "doc": "",
+        "lineno": 39
+      }
+    ]
+  },
+  {
+    "path": "kernel/reducer.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "DerivedEvent",
+        "doc": "",
+        "lineno": 18,
+        "methods": []
+      },
+      {
+        "name": "ReducerDiagnostics",
+        "doc": "",
+        "lineno": 25,
+        "methods": [
+          {
+            "name": "request_started_ns",
+            "kind": "method",
+            "doc": "",
+            "lineno": 36
+          },
+          {
+            "name": "mark_request_started",
+            "kind": "method",
+            "doc": "",
+            "lineno": 43
+          },
+          {
+            "name": "has_seen_first_token",
+            "kind": "method",
+            "doc": "",
+            "lineno": 50
+          },
+          {
+            "name": "mark_first_token_seen",
+            "kind": "method",
+            "doc": "",
+            "lineno": 53
+          }
+        ]
+      },
+      {
+        "name": "ReducerConfig",
+        "doc": "",
+        "lineno": 61,
+        "methods": []
+      },
+      {
+        "name": "ReducerTransition",
+        "doc": "",
+        "lineno": 72,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "_normalized_text",
+        "kind": "function",
+        "doc": "",
+        "lineno": 79
+      },
+      {
+        "name": "_is_interrupt_replay",
+        "kind": "function",
+        "doc": "",
+        "lineno": 83
+      },
+      {
+        "name": "_apply_event_meta",
+        "kind": "function",
+        "doc": "",
+        "lineno": 87
+      },
+      {
+        "name": "validate_engine_output",
+        "kind": "function",
+        "doc": "",
+        "lineno": 95
+      },
+      {
+        "name": "reduce_event",
+        "kind": "function",
+        "doc": "",
+        "lineno": 117
+      }
+    ]
+  },
+  {
+    "path": "kernel/stable_prefix.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "StablePrefixDecision",
+        "doc": "",
+        "lineno": 22,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "_normalize_text",
+        "kind": "function",
+        "doc": "",
+        "lineno": 7
+      },
+      {
+        "name": "_token_prefix",
+        "kind": "function",
+        "doc": "",
+        "lineno": 11
+      },
+      {
+        "name": "detect_stable_prefix",
+        "kind": "function",
+        "doc": "",
+        "lineno": 27
+      }
+    ]
+  },
+  {
+    "path": "kernel/state.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "TranscriptState",
+        "doc": "",
+        "lineno": 11,
+        "methods": []
+      },
+      {
+        "name": "OutputState",
+        "doc": "",
+        "lineno": 23,
+        "methods": []
+      },
+      {
+        "name": "RecoveryStatus",
+        "doc": "",
+        "lineno": 33,
+        "methods": []
+      },
+      {
+        "name": "KernelState",
+        "doc": "",
+        "lineno": 39,
+        "methods": [
+          {
+            "name": "remember_event",
+            "kind": "method",
+            "doc": "",
+            "lineno": 56
+          },
+          {
+            "name": "bind_request_event",
+            "kind": "method",
+            "doc": "",
+            "lineno": 67
+          },
+          {
+            "name": "request_event_id",
+            "kind": "method",
+            "doc": "",
+            "lineno": 75
+          },
+          {
+            "name": "request_output_version",
+            "kind": "method",
+            "doc": "",
+            "lineno": 82
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "kernel/tick_engine.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "TickEngine",
+        "doc": "",
+        "lineno": 8,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 9
+          },
+          {
+            "name": "run_once",
+            "kind": "method",
+            "doc": "",
+            "lineno": 21
+          },
+          {
+            "name": "drift_alarm_triggered",
+            "kind": "method",
+            "doc": "",
+            "lineno": 52
+          },
+          {
+            "name": "drift_snapshot",
+            "kind": "method",
+            "doc": "",
+            "lineno": 55
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "kernel/tts_fragment_planner.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "TTSFragmentPlannerConfig",
+        "doc": "",
+        "lineno": 23,
+        "methods": []
+      },
+      {
+        "name": "TTSFragmentPlan",
+        "doc": "",
+        "lineno": 31,
+        "methods": [
+          {
+            "name": "flush_text",
+            "kind": "method",
+            "doc": "",
+            "lineno": 39
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "name": "_normalize_text",
+        "kind": "function",
+        "doc": "",
+        "lineno": 10
+      },
+      {
+        "name": "_normalize_tokens",
+        "kind": "function",
+        "doc": "",
+        "lineno": 14
+      },
+      {
+        "name": "_token_has_boundary",
+        "kind": "function",
+        "doc": "",
+        "lineno": 18
+      },
+      {
+        "name": "plan_tts_fragment",
+        "kind": "function",
+        "doc": "",
+        "lineno": 43
+      }
+    ]
+  },
+  {
+    "path": "observability/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "observability/metrics.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "LatencySummary",
+        "doc": "",
+        "lineno": 8,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "summarize_latency",
+        "kind": "function",
+        "doc": "",
+        "lineno": 15
+      }
+    ]
+  },
+  {
+    "path": "observability/replay_viewer.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": [
+      {
+        "name": "view_replay",
+        "kind": "function",
+        "doc": "",
+        "lineno": 6
+      }
+    ]
+  },
+  {
+    "path": "observability/timeline.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": [
+      {
+        "name": "timeline",
+        "kind": "function",
+        "doc": "",
+        "lineno": 4
+      }
+    ]
+  },
+  {
+    "path": "observability/tracer.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "Trace",
+        "doc": "",
+        "lineno": 7,
+        "methods": [
+          {
+            "name": "add",
+            "kind": "method",
+            "doc": "",
+            "lineno": 10
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "replay/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "replay/determinism.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": [
+      {
+        "name": "verify_replay",
+        "kind": "function",
+        "doc": "",
+        "lineno": 11
+      },
+      {
+        "name": "verify_replay_runs",
+        "kind": "function",
+        "doc": "",
+        "lineno": 15
+      },
+      {
+        "name": "canonical_state_hash",
+        "kind": "function",
+        "doc": "",
+        "lineno": 19
+      },
+      {
+        "name": "canonical_event_stream_hash",
+        "kind": "function",
+        "doc": "",
+        "lineno": 29
+      }
+    ]
+  },
+  {
+    "path": "replay/event_log.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "EventLog",
+        "doc": "",
+        "lineno": 10,
+        "methods": [
+          {
+            "name": "append",
+            "kind": "method",
+            "doc": "",
+            "lineno": 13
+          },
+          {
+            "name": "append_runtime_event",
+            "kind": "method",
+            "doc": "",
+            "lineno": 16
+          },
+          {
+            "name": "as_records",
+            "kind": "method",
+            "doc": "",
+            "lineno": 27
+          },
+          {
+            "name": "replay_into_kernel",
+            "kind": "method",
+            "doc": "",
+            "lineno": 36
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "replay/snapshot.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "Snapshot",
+        "doc": "",
+        "lineno": 7,
+        "methods": []
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "replay/validator.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": [
+      {
+        "name": "assert_state_equal",
+        "kind": "function",
+        "doc": "",
+        "lineno": 7
+      },
+      {
+        "name": "assert_event_identity_closure",
+        "kind": "function",
+        "doc": "",
+        "lineno": 12
+      }
+    ]
+  },
+  {
+    "path": "replay/verifier.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "DeterminismError",
+        "doc": "",
+        "lineno": 8,
+        "methods": []
+      },
+      {
+        "name": "ReplayRun",
+        "doc": "",
+        "lineno": 13,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "_canonical_hash",
+        "kind": "function",
+        "doc": "",
+        "lineno": 20
+      },
+      {
+        "name": "verify_deterministic_replay",
+        "kind": "function",
+        "doc": "",
+        "lineno": 25
+      }
+    ]
+  },
+  {
+    "path": "runtime/admission_gate.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "AdmissionError",
+        "doc": "",
+        "lineno": 12,
+        "methods": []
+      },
+      {
+        "name": "AdmissionConfig",
+        "doc": "",
+        "lineno": 17,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "_cpu_flags",
+        "kind": "function",
+        "doc": "",
+        "lineno": 23
+      },
+      {
+        "name": "_check_avx2",
+        "kind": "function",
+        "doc": "",
+        "lineno": 33
+      },
+      {
+        "name": "_check_clock",
+        "kind": "function",
+        "doc": "",
+        "lineno": 40
+      },
+      {
+        "name": "_check_socket_limits",
+        "kind": "function",
+        "doc": "",
+        "lineno": 54
+      },
+      {
+        "name": "_require_path",
+        "kind": "function",
+        "doc": "",
+        "lineno": 60
+      },
+      {
+        "name": "_require_cache_dir",
+        "kind": "function",
+        "doc": "",
+        "lineno": 70
+      },
+      {
+        "name": "_check_cuda_device",
+        "kind": "function",
+        "doc": "",
+        "lineno": 80
+      },
+      {
+        "name": "hardware_admission_check",
+        "kind": "function",
+        "doc": "",
+        "lineno": 97
+      }
+    ]
+  },
+  {
+    "path": "runtime/bootstrap.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "WarmReport",
+        "doc": "",
+        "lineno": 37,
+        "methods": []
+      },
+      {
+        "name": "WorkerStatus",
+        "doc": "",
+        "lineno": 44,
+        "methods": []
+      },
+      {
+        "name": "TopologyReport",
+        "doc": "",
+        "lineno": 53,
+        "methods": []
+      },
+      {
+        "name": "VoicePipelineRuntime",
+        "doc": "",
+        "lineno": 61,
+        "methods": [
+          {
+            "name": "__post_init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 96
+          },
+          {
+            "name": "global_ready",
+            "kind": "method",
+            "doc": "",
+            "lineno": 101
+          },
+          {
+            "name": "assert_ready_for_live_audio",
+            "kind": "method",
+            "doc": "",
+            "lineno": 110
+          },
+          {
+            "name": "tick",
+            "kind": "method",
+            "doc": "",
+            "lineno": 114
+          },
+          {
+            "name": "topology_report",
+            "kind": "method",
+            "doc": "",
+            "lineno": 117
+          },
+          {
+            "name": "dry_run_report",
+            "kind": "method",
+            "doc": "",
+            "lineno": 120
+          },
+          {
+            "name": "next_sequence_no",
+            "kind": "method",
+            "doc": "",
+            "lineno": 124
+          },
+          {
+            "name": "start",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 127
+          },
+          {
+            "name": "stop",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 134
+          },
+          {
+            "name": "run_forever",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 146
+          },
+          {
+            "name": "_tick_loop",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 151
+          },
+          {
+            "name": "_record_latency",
+            "kind": "method",
+            "doc": "",
+            "lineno": 161
+          },
+          {
+            "name": "_authority_event",
+            "kind": "method",
+            "doc": "",
+            "lineno": 164
+          },
+          {
+            "name": "_append_event",
+            "kind": "method",
+            "doc": "",
+            "lineno": 188
+          },
+          {
+            "name": "_asr_events_to_authority",
+            "kind": "method",
+            "doc": "",
+            "lineno": 200
+          },
+          {
+            "name": "process_pcm_frame",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 217
+          },
+          {
+            "name": "_tick_and_stamp_commands",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 239
+          },
+          {
+            "name": "_dispatch_commands",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 258
+          },
+          {
+            "name": "run_tick_and_dispatch",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 284
+          },
+          {
+            "name": "_execute_vllm_command",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 292
+          },
+          {
+            "name": "_execute_tts_command",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 380
+          },
+          {
+            "name": "_resample_output",
+            "kind": "method",
+            "doc": "",
+            "lineno": 478
+          },
+          {
+            "name": "send_pcm_once",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 486
+          },
+          {
+            "name": "latency_summary",
+            "kind": "method",
+            "doc": "",
+            "lineno": 499
+          },
+          {
+            "name": "replay_state_hash",
+            "kind": "method",
+            "doc": "",
+            "lineno": 502
+          },
+          {
+            "name": "replay_event_hash",
+            "kind": "method",
+            "doc": "",
+            "lineno": 505
+          },
+          {
+            "name": "last_timestamps",
+            "kind": "method",
+            "doc": "",
+            "lineno": 508
+          },
+          {
+            "name": "recovery_snapshot",
+            "kind": "method",
+            "doc": "",
+            "lineno": 511
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "name": "_bind_cuda_device",
+        "kind": "function",
+        "doc": "",
+        "lineno": 514
+      },
+      {
+        "name": "_assert_contract",
+        "kind": "function",
+        "doc": "",
+        "lineno": 528
+      },
+      {
+        "name": "_identity_hash",
+        "kind": "function",
+        "doc": "",
+        "lineno": 539
+      },
+      {
+        "name": "_build_model_cache_identity",
+        "kind": "function",
+        "doc": "",
+        "lineno": 544
+      },
+      {
+        "name": "_build_topology",
+        "kind": "function",
+        "doc": "",
+        "lineno": 567
+      },
+      {
+        "name": "_build_kernel",
+        "kind": "function",
+        "doc": "",
+        "lineno": 576
+      },
+      {
+        "name": "_warm_asr_engine",
+        "kind": "function",
+        "doc": "",
+        "lineno": 597
+      },
+      {
+        "name": "_run_async_probe",
+        "kind": "function",
+        "doc": "",
+        "lineno": 605
+      },
+      {
+        "name": "_warm_vllm_engine",
+        "kind": "function",
+        "doc": "",
+        "lineno": 623
+      },
+      {
+        "name": "_warm_tts_engine",
+        "kind": "function",
+        "doc": "",
+        "lineno": 643
+      },
+      {
+        "name": "bootstrap_runtime",
+        "kind": "function",
+        "doc": "",
+        "lineno": 663
+      }
+    ]
+  },
+  {
+    "path": "runtime/cli.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": [
+      {
+        "name": "_parse_args",
+        "kind": "function",
+        "doc": "",
+        "lineno": 13
+      },
+      {
+        "name": "main",
+        "kind": "function",
+        "doc": "",
+        "lineno": 22
+      }
+    ]
+  },
+  {
+    "path": "runtime/config.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "RuntimeConfig",
+        "doc": "",
+        "lineno": 37,
+        "methods": [
+          {
+            "name": "resolved_vllm_model_path",
+            "kind": "method",
+            "doc": "",
+            "lineno": 78
+          },
+          {
+            "name": "resolved_cosyvoice3_model_path",
+            "kind": "method",
+            "doc": "",
+            "lineno": 81
+          },
+          {
+            "name": "from_env",
+            "kind": "method",
+            "doc": "",
+            "lineno": 85
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "name": "_load_env_file_once",
+        "kind": "function",
+        "doc": "",
+        "lineno": 11
+      }
+    ]
+  },
+  {
+    "path": "runtime/livekit_bridge.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "LiveKitRuntimeBridge",
+        "doc": "",
+        "lineno": 59,
+        "methods": [
+          {
+            "name": "__post_init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 68
+          },
+          {
+            "name": "_add_task",
+            "kind": "method",
+            "doc": "",
+            "lineno": 71
+          },
+          {
+            "name": "start",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 76
+          },
+          {
+            "name": "stop",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 127
+          },
+          {
+            "name": "_consume_remote_audio",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 150
+          },
+          {
+            "name": "_emit_runtime_pcm",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 178
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "name": "_b64url",
+        "kind": "function",
+        "doc": "",
+        "lineno": 16
+      },
+      {
+        "name": "create_livekit_access_token",
+        "kind": "function",
+        "doc": "",
+        "lineno": 20
+      }
+    ]
+  },
+  {
+    "path": "runtime/server.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": [
+      {
+        "name": "_runtime_readiness",
+        "kind": "function",
+        "doc": "",
+        "lineno": 15
+      },
+      {
+        "name": "_runtime_telemetry",
+        "kind": "function",
+        "doc": "",
+        "lineno": 87
+      },
+      {
+        "name": "_system_config",
+        "kind": "function",
+        "doc": "",
+        "lineno": 159
+      },
+      {
+        "name": "create_app",
+        "kind": "function",
+        "doc": "",
+        "lineno": 181
+      }
+    ]
+  },
+  {
+    "path": "runtime/topology.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "LaneConfig",
+        "doc": "",
+        "lineno": 7,
+        "methods": []
+      },
+      {
+        "name": "RuntimeTopology",
+        "doc": "",
+        "lineno": 14,
+        "methods": []
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "runtime_registry.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": [
+      {
+        "name": "module_runtime_owner",
+        "kind": "function",
+        "doc": "",
+        "lineno": 6
+      },
+      {
+        "name": "assert_valid_runtime_import",
+        "kind": "function",
+        "doc": "",
+        "lineno": 23
+      }
+    ]
+  },
+  {
+    "path": "shared/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "shared/audio_resample.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "StreamingAudioResampler",
+        "doc": "",
+        "lineno": 7,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 8
+          },
+          {
+            "name": "_reset_stream",
+            "kind": "method",
+            "doc": "",
+            "lineno": 17
+          },
+          {
+            "name": "resample",
+            "kind": "method",
+            "doc": "",
+            "lineno": 30
+          },
+          {
+            "name": "flush",
+            "kind": "method",
+            "doc": "",
+            "lineno": 50
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "shared/lineage.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "EpochLineage",
+        "doc": "",
+        "lineno": 38,
+        "methods": [
+          {
+            "name": "as_id",
+            "kind": "method",
+            "doc": "",
+            "lineno": 43
+          }
+        ]
+      },
+      {
+        "name": "IdentityClosure",
+        "doc": "",
+        "lineno": 61,
+        "methods": []
+      }
+    ],
+    "functions": [
+      {
+        "name": "canonical_session_id",
+        "kind": "function",
+        "doc": "",
+        "lineno": 12
+      },
+      {
+        "name": "canonical_turn_id",
+        "kind": "function",
+        "doc": "",
+        "lineno": 17
+      },
+      {
+        "name": "canonical_epoch_id",
+        "kind": "function",
+        "doc": "",
+        "lineno": 21
+      },
+      {
+        "name": "canonical_response_request_id",
+        "kind": "function",
+        "doc": "",
+        "lineno": 25
+      },
+      {
+        "name": "build_lineage_id",
+        "kind": "function",
+        "doc": "",
+        "lineno": 47
+      },
+      {
+        "name": "build_trace_id",
+        "kind": "function",
+        "doc": "",
+        "lineno": 55
+      },
+      {
+        "name": "build_identity_closure",
+        "kind": "function",
+        "doc": "",
+        "lineno": 69
+      },
+      {
+        "name": "validate_identity_closure",
+        "kind": "function",
+        "doc": "",
+        "lineno": 92
+      },
+      {
+        "name": "validate_lineage_match",
+        "kind": "function",
+        "doc": "",
+        "lineno": 102
+      }
+    ]
+  },
+  {
+    "path": "shared/text.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": [
+      {
+        "name": "normalize_text",
+        "kind": "function",
+        "doc": "",
+        "lineno": 4
+      },
+      {
+        "name": "normalize_transcript",
+        "kind": "function",
+        "doc": "",
+        "lineno": 8
+      },
+      {
+        "name": "preview_text",
+        "kind": "function",
+        "doc": "",
+        "lineno": 12
+      }
+    ]
+  },
+  {
+    "path": "shared/time.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": [
+      {
+        "name": "now_ns",
+        "kind": "function",
+        "doc": "",
+        "lineno": 6
+      },
+      {
+        "name": "ns_to_ms",
+        "kind": "function",
+        "doc": "",
+        "lineno": 10
+      }
+    ]
+  },
+  {
+    "path": "shared/types.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "DispatchPayload",
+        "doc": "",
+        "lineno": 20,
+        "methods": []
+      },
+      {
+        "name": "EventValidationError",
+        "doc": "",
+        "lineno": 62,
+        "methods": []
+      },
+      {
+        "name": "AuthorityEvent",
+        "doc": "",
+        "lineno": 71,
+        "methods": [
+          {
+            "name": "__post_init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 82
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "name": "_freeze_mapping",
+        "kind": "function",
+        "doc": "",
+        "lineno": 66
+      },
+      {
+        "name": "new_authority_event",
+        "kind": "function",
+        "doc": "",
+        "lineno": 95
+      },
+      {
+        "name": "validate_authority_event",
+        "kind": "function",
+        "doc": "",
+        "lineno": 139
+      }
+    ]
+  },
+  {
+    "path": "stt/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "stt/asr_engine.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "ASREvent",
+        "doc": "",
+        "lineno": 15,
+        "methods": []
+      },
+      {
+        "name": "ASRRuntimeConfig",
+        "doc": "",
+        "lineno": 24,
+        "methods": []
+      },
+      {
+        "name": "ASREngine",
+        "doc": "CPU streaming ASR runtime backed by Vosk when available.",
+        "lineno": 30,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 33
+          },
+          {
+            "name": "is_warm",
+            "kind": "method",
+            "doc": "",
+            "lineno": 48
+          },
+          {
+            "name": "sample_rate",
+            "kind": "method",
+            "doc": "",
+            "lineno": 52
+          },
+          {
+            "name": "warm",
+            "kind": "method",
+            "doc": "",
+            "lineno": 55
+          },
+          {
+            "name": "start_session",
+            "kind": "method",
+            "doc": "",
+            "lineno": 78
+          },
+          {
+            "name": "ingest_partial",
+            "kind": "method",
+            "doc": "",
+            "lineno": 90
+          },
+          {
+            "name": "ingest_final",
+            "kind": "method",
+            "doc": "",
+            "lineno": 100
+          },
+          {
+            "name": "ingest_audio",
+            "kind": "method",
+            "doc": "Process PCM16 mono audio and emit partial/final transcript events.",
+            "lineno": 111
+          },
+          {
+            "name": "finalize",
+            "kind": "method",
+            "doc": "",
+            "lineno": 141
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "name": "_safe_json_loads",
+        "kind": "function",
+        "doc": "",
+        "lineno": 157
+      }
+    ]
+  },
+  {
+    "path": "transport/__init__.py",
+    "module_doc": "",
+    "classes": [],
+    "functions": []
+  },
+  {
+    "path": "transport/livekit_transport.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "LiveKitTransportConfig",
+        "doc": "",
+        "lineno": 7,
+        "methods": []
+      },
+      {
+        "name": "LiveKitTransport",
+        "doc": "",
+        "lineno": 23,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 24
+          },
+          {
+            "name": "mark_bridge_connected",
+            "kind": "method",
+            "doc": "",
+            "lineno": 33
+          },
+          {
+            "name": "mark_bridge_disconnected",
+            "kind": "method",
+            "doc": "",
+            "lineno": 36
+          },
+          {
+            "name": "record_ingress_frame",
+            "kind": "method",
+            "doc": "",
+            "lineno": 39
+          },
+          {
+            "name": "record_ingress_drop",
+            "kind": "method",
+            "doc": "",
+            "lineno": 43
+          },
+          {
+            "name": "record_egress_frame",
+            "kind": "method",
+            "doc": "",
+            "lineno": 46
+          },
+          {
+            "name": "ingress_metrics",
+            "kind": "method",
+            "doc": "",
+            "lineno": 50
+          }
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "path": "transport/pcm_clock.py",
+    "module_doc": "",
+    "classes": [
+      {
+        "name": "PCMFrame",
+        "doc": "",
+        "lineno": 12,
+        "methods": []
+      },
+      {
+        "name": "PCMClockSender",
+        "doc": "",
+        "lineno": 19,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 20
+          },
+          {
+            "name": "depth",
+            "kind": "method",
+            "doc": "",
+            "lineno": 38
+          },
+          {
+            "name": "enqueue",
+            "kind": "method",
+            "doc": "",
+            "lineno": 41
+          },
+          {
+            "name": "_pop_fresh",
+            "kind": "method",
+            "doc": "",
+            "lineno": 51
+          },
+          {
+            "name": "oldest_age_ms",
+            "kind": "method",
+            "doc": "",
+            "lineno": 63
+          },
+          {
+            "name": "run_once",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 68
+          }
+        ]
+      }
+    ],
+    "functions": []
+  }
+]

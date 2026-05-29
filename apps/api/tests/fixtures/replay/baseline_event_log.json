@@ -1,0 +1,9 @@
+{
+  "name": "baseline_asr_turn_sequence",
+  "events": [
+    {"event_type": "start_of_speech", "text": ""},
+    {"event_type": "incremental_update", "text": "hello"},
+    {"event_type": "final_transcript", "text": "hello there"},
+    {"event_type": "end_of_speech", "text": "hello there"}
+  ]
+}

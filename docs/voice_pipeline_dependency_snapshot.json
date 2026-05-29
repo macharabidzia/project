@@ -1,0 +1,365 @@
+{
+  "generated_at": "2026-05-29T17:30:07.727117+00:00",
+  "module_edges": [
+    {
+      "imports": [],
+      "module": "voice_pipeline.__init__"
+    },
+    {
+      "imports": [
+        "voice_pipeline.bus.ring_topology",
+        "voice_pipeline.bus.ring_types",
+        "voice_pipeline.bus.shm_ring"
+      ],
+      "module": "voice_pipeline.bus.__init__"
+    },
+    {
+      "imports": [
+        "voice_pipeline.bus.ring_types",
+        "voice_pipeline.bus.shm_ring"
+      ],
+      "module": "voice_pipeline.bus.ring_topology"
+    },
+    {
+      "imports": [
+        "voice_pipeline.shared.time"
+      ],
+      "module": "voice_pipeline.bus.ring_types"
+    },
+    {
+      "imports": [
+        "voice_pipeline.bus.ring_types"
+      ],
+      "module": "voice_pipeline.bus.shm_ring"
+    },
+    {
+      "imports": [
+        "voice_pipeline.governance.single_writer_audit"
+      ],
+      "module": "voice_pipeline.governance.__init__"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.governance.single_writer_audit"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.gpu.__init__"
+    },
+    {
+      "imports": [
+        "voice_pipeline.gpu.tts_worker.engine",
+        "voice_pipeline.gpu.tts_worker.stream"
+      ],
+      "module": "voice_pipeline.gpu.tts_worker.__init__"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.gpu.tts_worker.engine"
+    },
+    {
+      "imports": [
+        "voice_pipeline.gpu.tts_worker.engine"
+      ],
+      "module": "voice_pipeline.gpu.tts_worker.stream"
+    },
+    {
+      "imports": [
+        "voice_pipeline.gpu.vllm_worker.engine",
+        "voice_pipeline.gpu.vllm_worker.stream"
+      ],
+      "module": "voice_pipeline.gpu.vllm_worker.__init__"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.gpu.vllm_worker.engine"
+    },
+    {
+      "imports": [
+        "voice_pipeline.gpu.vllm_worker.engine"
+      ],
+      "module": "voice_pipeline.gpu.vllm_worker.stream"
+    },
+    {
+      "imports": [
+        "voice_pipeline.kernel.kernel_runtime"
+      ],
+      "module": "voice_pipeline.kernel.__init__"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.kernel.dispatch"
+    },
+    {
+      "imports": [
+        "voice_pipeline.bus.ring_types"
+      ],
+      "module": "voice_pipeline.kernel.invariant_loop"
+    },
+    {
+      "imports": [
+        "voice_pipeline.bus.ring_topology",
+        "voice_pipeline.kernel.invariant_loop",
+        "voice_pipeline.kernel.latency_contract",
+        "voice_pipeline.kernel.leases",
+        "voice_pipeline.kernel.ordering",
+        "voice_pipeline.kernel.reducer",
+        "voice_pipeline.kernel.state",
+        "voice_pipeline.kernel.tick_engine",
+        "voice_pipeline.replay.validator",
+        "voice_pipeline.runtime.topology",
+        "voice_pipeline.shared.lineage",
+        "voice_pipeline.shared.time",
+        "voice_pipeline.shared.types"
+      ],
+      "module": "voice_pipeline.kernel.kernel_runtime"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.kernel.latency_contract"
+    },
+    {
+      "imports": [
+        "voice_pipeline.kernel.state",
+        "voice_pipeline.shared.lineage"
+      ],
+      "module": "voice_pipeline.kernel.leases"
+    },
+    {
+      "imports": [
+        "voice_pipeline.kernel.state",
+        "voice_pipeline.shared.types"
+      ],
+      "module": "voice_pipeline.kernel.ordering"
+    },
+    {
+      "imports": [
+        "voice_pipeline.kernel.leases",
+        "voice_pipeline.kernel.state"
+      ],
+      "module": "voice_pipeline.kernel.recovery"
+    },
+    {
+      "imports": [
+        "voice_pipeline.kernel.dispatch",
+        "voice_pipeline.kernel.leases",
+        "voice_pipeline.kernel.recovery",
+        "voice_pipeline.kernel.stable_prefix",
+        "voice_pipeline.kernel.state",
+        "voice_pipeline.kernel.tts_fragment_planner",
+        "voice_pipeline.shared.lineage",
+        "voice_pipeline.shared.time",
+        "voice_pipeline.shared.types"
+      ],
+      "module": "voice_pipeline.kernel.reducer"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.kernel.stable_prefix"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.kernel.state"
+    },
+    {
+      "imports": [
+        "voice_pipeline.shared.time"
+      ],
+      "module": "voice_pipeline.kernel.tick_engine"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.kernel.tts_fragment_planner"
+    },
+    {
+      "imports": [
+        "voice_pipeline.observability.metrics",
+        "voice_pipeline.observability.replay_viewer",
+        "voice_pipeline.observability.timeline",
+        "voice_pipeline.observability.tracer"
+      ],
+      "module": "voice_pipeline.observability.__init__"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.observability.metrics"
+    },
+    {
+      "imports": [
+        "voice_pipeline.replay.event_log"
+      ],
+      "module": "voice_pipeline.observability.replay_viewer"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.observability.timeline"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.observability.tracer"
+    },
+    {
+      "imports": [
+        "voice_pipeline.replay.determinism",
+        "voice_pipeline.replay.event_log",
+        "voice_pipeline.replay.snapshot",
+        "voice_pipeline.replay.validator"
+      ],
+      "module": "voice_pipeline.replay.__init__"
+    },
+    {
+      "imports": [
+        "voice_pipeline.replay.validator",
+        "voice_pipeline.replay.verifier"
+      ],
+      "module": "voice_pipeline.replay.determinism"
+    },
+    {
+      "imports": [
+        "voice_pipeline.shared.types"
+      ],
+      "module": "voice_pipeline.replay.event_log"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.replay.snapshot"
+    },
+    {
+      "imports": [
+        "voice_pipeline.shared.lineage",
+        "voice_pipeline.shared.types"
+      ],
+      "module": "voice_pipeline.replay.validator"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.replay.verifier"
+    },
+    {
+      "imports": [
+        "voice_pipeline.runtime.config"
+      ],
+      "module": "voice_pipeline.runtime.admission_gate"
+    },
+    {
+      "imports": [
+        "voice_pipeline.bus.ring_topology",
+        "voice_pipeline.gpu.tts_worker.engine",
+        "voice_pipeline.gpu.tts_worker.stream",
+        "voice_pipeline.gpu.vllm_worker.engine",
+        "voice_pipeline.gpu.vllm_worker.stream",
+        "voice_pipeline.kernel.dispatch",
+        "voice_pipeline.kernel.kernel_runtime",
+        "voice_pipeline.kernel.recovery",
+        "voice_pipeline.observability.metrics",
+        "voice_pipeline.replay.determinism",
+        "voice_pipeline.replay.event_log",
+        "voice_pipeline.runtime.admission_gate",
+        "voice_pipeline.runtime.config",
+        "voice_pipeline.runtime.topology",
+        "voice_pipeline.shared.audio_resample",
+        "voice_pipeline.shared.time",
+        "voice_pipeline.shared.types",
+        "voice_pipeline.stt.asr_engine",
+        "voice_pipeline.transport.livekit_transport",
+        "voice_pipeline.transport.pcm_clock"
+      ],
+      "module": "voice_pipeline.runtime.bootstrap"
+    },
+    {
+      "imports": [
+        "voice_pipeline.runtime.bootstrap",
+        "voice_pipeline.runtime.config"
+      ],
+      "module": "voice_pipeline.runtime.cli"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.runtime.config"
+    },
+    {
+      "imports": [
+        "voice_pipeline.runtime.bootstrap",
+        "voice_pipeline.transport.livekit_transport"
+      ],
+      "module": "voice_pipeline.runtime.livekit_bridge"
+    },
+    {
+      "imports": [
+        "voice_pipeline.runtime.bootstrap",
+        "voice_pipeline.runtime.config",
+        "voice_pipeline.runtime.livekit_bridge",
+        "voice_pipeline.shared.time"
+      ],
+      "module": "voice_pipeline.runtime.server"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.runtime.topology"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.runtime_registry"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.shared.__init__"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.shared.audio_resample"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.shared.lineage"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.shared.text"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.shared.time"
+    },
+    {
+      "imports": [
+        "voice_pipeline.shared.lineage"
+      ],
+      "module": "voice_pipeline.shared.types"
+    },
+    {
+      "imports": [
+        "voice_pipeline.stt.asr_engine"
+      ],
+      "module": "voice_pipeline.stt.__init__"
+    },
+    {
+      "imports": [
+        "voice_pipeline.shared.audio_resample",
+        "voice_pipeline.shared.time"
+      ],
+      "module": "voice_pipeline.stt.asr_engine"
+    },
+    {
+      "imports": [
+        "voice_pipeline.transport.livekit_transport"
+      ],
+      "module": "voice_pipeline.transport.__init__"
+    },
+    {
+      "imports": [],
+      "module": "voice_pipeline.transport.livekit_transport"
+    },
+    {
+      "imports": [
+        "voice_pipeline.shared.time"
+      ],
+      "module": "voice_pipeline.transport.pcm_clock"
+    }
+  ],
+  "violations": {
+    "execution_adapter_imports_outside_kernel": [],
+    "reducer_transition_imports_outside_kernel": [],
+    "transport_authority_mutation_hits": []
+  }
+}
