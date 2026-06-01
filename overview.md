@@ -1,6 +1,6 @@
 # Voice Pipeline Python Overview
 
-Generated from `apps/api/src/voice_pipeline` on 2026-05-29.
+Generated from `apps/api/src/voice_pipeline` on 2026-06-01.
 
 Includes every Python module currently present in the package, with top-level classes, methods, and functions plus short descriptions.
 
@@ -117,13 +117,42 @@ Module with runtime support code.
   - TTSEngine.warm: Handles warm.
   - TTSEngine.start_persistent_session: Starts persistent session.
   - TTSEngine.reset: Handles reset.
+  - TTSEngine.cancel: Handles cancel.
+  - TTSEngine.debug_metrics: Handles debug metrics.
+  - TTSEngine._record_generator_fragment: Handles record generator fragment.
   - TTSEngine.stream_pcm: Streams pcm.
+  - TTSEngine._stream_generator_pcm_threaded: Asynchronously handles stream generator pcm threaded.
+  - TTSEngine._should_drop_resumed_tail: Handles should drop resumed tail.
 
 ### Functions
-- _iter_fragments: Handles iter fragments.
+- _pcm_bytes_rms_peak: Handles pcm bytes rms peak.
+- _normalize_fragment: Handles normalize fragment.
+- _iter_fragments_with_last: Asynchronously handles iter fragments with last.
+- _iter_text_tokens: Handles iter text tokens.
+- _resolve_native_stream_emit_thresholds: Handles resolve native stream emit thresholds.
+- _resolve_native_max_prompt_speech_tokens: Handles resolve native max prompt speech tokens.
+- _resolve_native_oneshot_max_tokens: Handles resolve native oneshot max tokens.
+- _force_zero_shot_native_stream: Handles force zero shot native stream.
+- _ensure_endofprompt: Handles ensure endofprompt.
 - _resolve_native_stream_inference: Handles resolve native stream inference.
 - _call_cosyvoice_native_stream: Handles call cosyvoice native stream.
+- _call_cosyvoice_native_once: Handles call cosyvoice native once.
+- _prime_native_prompt_cache: Handles prime native prompt cache.
+- _trim_native_prompt_kwargs: Handles trim native prompt kwargs.
+- _ends_sentence: Handles ends sentence.
+- _token_count: Handles token count.
+- _strip_followup_metadata_tail: Handles strip followup metadata tail.
+- _streaming_text_fragments: Handles streaming text fragments.
+- _contains_cjk: Handles contains cjk.
+- _latin_ratio: Handles latin ratio.
+- _should_use_cross_lingual_mode: Handles should use cross lingual mode.
+- _ensure_english_lang_tag: Handles ensure english lang tag.
 - _tts_speech_to_pcm_bytes: Handles tts speech to pcm bytes.
+- _prepend_sys_path: Handles prepend sys path.
+- _candidate_cosyvoice_roots: Handles candidate cosyvoice roots.
+- _ensure_cosyvoice_runtime_paths: Handles ensure cosyvoice runtime paths.
+- _assert_cuda_device_binding: Handles assert cuda device binding.
+- _cuda_device_context: Handles cuda device context.
 
 ### gpu/tts_worker/stream.py
 Module with runtime support code.
@@ -156,11 +185,20 @@ Module with runtime support code.
   - VLLMEngine.prefix_cache_ready: Handles prefix cache ready.
   - VLLMEngine.prewarm_prefix_cache: Prewarms prefix cache.
   - VLLMEngine.warm: Handles warm.
+  - VLLMEngine._maybe_load_tokenizer: Handles maybe load tokenizer.
   - VLLMEngine.cache_stats: Handles cache stats.
+  - VLLMEngine.cancel_request: Asynchronously handles cancel request.
+  - VLLMEngine.render_prompt: Handles render prompt.
   - VLLMEngine.stream_tokens: Streams tokens.
 
 ### Functions
 - build_prompt_cache_key: Builds prompt cache key.
+- _assert_cuda_device_binding: Handles assert cuda device binding.
+- _strip_reasoning_sections: Handles strip reasoning sections.
+- _normalize_spoken_output: Handles normalize spoken output.
+- _append_spoken_delta: Handles append spoken delta.
+- _split_flushable_spoken_prefix: Handles split flushable spoken prefix.
+- _cuda_device_context: Handles cuda device context.
 
 ### gpu/vllm_worker/stream.py
 Module with runtime support code.
@@ -191,6 +229,9 @@ Module with runtime support code.
 ### Functions
 - build_vllm_command: Builds vllm command.
 - build_tts_command: Builds tts command.
+- build_tts_append_command: Builds tts append command.
+- build_vllm_cancel_command: Builds vllm cancel command.
+- build_tts_cancel_command: Builds tts cancel command.
 
 ### kernel/invariant_loop.py
 Module with runtime support code.
@@ -222,6 +263,7 @@ Module with runtime support code.
   - KernelRuntime.queued_event_count: Handles queued event count.
   - KernelRuntime.next_sequence_no: Handles next sequence no.
   - KernelRuntime.current_lease: Handles current lease.
+  - KernelRuntime.reset: Handles reset.
   - KernelRuntime._commit_transition: Handles commit transition.
   - KernelRuntime.apply_event: Handles apply event.
   - KernelRuntime.replay: Handles replay.
@@ -307,8 +349,20 @@ Module with runtime support code.
 
 ### Functions
 - _normalized_text: Handles normalized text.
+- _join_spoken_tokens: Handles join spoken tokens.
+- _should_insert_spoken_boundary_space: Handles should insert spoken boundary space.
+- _should_close_first_stream_immediately: Handles should close first stream immediately.
 - _is_interrupt_replay: Handles is interrupt replay.
 - _apply_event_meta: Handles apply event meta.
+- _active_tts_request_for_current_output: Handles active tts request for current output.
+- _final_confirms_current_turn: Handles final confirms current turn.
+- _text_extends_current_turn: Handles text extends current turn.
+- _text_extends_completed_turn: Handles text extends completed turn.
+- _completed_turn_is_single_greeting: Handles completed turn is single greeting.
+- _should_ignore_completed_turn_short_tail: Handles should ignore completed turn short tail.
+- _should_ignore_completed_greeting_extension: Handles should ignore completed greeting extension.
+- _should_commit_greeting_partial: Handles should commit greeting partial.
+- _current_turn_is_single_greeting: Handles current turn is single greeting.
 - validate_engine_output: Validates engine output.
 - reduce_event: Handles reduce event.
 
@@ -367,6 +421,14 @@ Module with runtime support code.
 - _normalize_text: Handles normalize text.
 - _normalize_tokens: Handles normalize tokens.
 - _token_has_boundary: Handles token has boundary.
+- _token_is_punctuation_only: Handles token is punctuation only.
+- _token_is_contraction_suffix: Handles token is contraction suffix.
+- _token_is_dangling_function_word: Handles token is dangling function word.
+- _has_internal_boundary: Handles has internal boundary.
+- _lexical_token_count: Handles lexical token count.
+- _is_complete_short_clause: Handles is complete short clause.
+- _is_boundaryless_lexical_prefix: Handles is boundaryless lexical prefix.
+- _should_keep_stream_open: Handles should keep stream open.
 - plan_tts_fragment: Plans tts fragment.
 
 ## Observability
@@ -510,9 +572,19 @@ Module with runtime support code.
 - _check_avx2: Handles check avx2.
 - _check_clock: Handles check clock.
 - _check_socket_limits: Handles check socket limits.
+- _check_forbidden_distributed_env: Handles check forbidden distributed env.
 - _require_path: Handles require path.
 - _require_cache_dir: Handles require cache dir.
+- _require_value: Handles require value.
+- _require_file: Handles require file.
+- _require_any_glob: Handles require any glob.
+- _check_vosk_artifacts: Handles check vosk artifacts.
+- _check_vllm_artifacts: Handles check vllm artifacts.
+- _check_cosyvoice3_artifacts: Handles check cosyvoice3 artifacts.
+- _check_optional_speaker_asset: Handles check optional speaker asset.
 - _check_cuda_device: Handles check cuda device.
+- _visible_cuda_device_count: Handles visible cuda device count.
+- _check_livekit_config: Handles check livekit config.
 - hardware_admission_check: Handles hardware admission check.
 
 ### runtime/bootstrap.py
@@ -523,7 +595,22 @@ Module with runtime support code.
   - No methods defined in this class.
 - WorkerStatus: Container or runtime type for Worker Status.
   - No methods defined in this class.
+- WorkerFailureReason: Container or runtime type for Worker Failure Reason.
+  - No methods defined in this class.
 - TopologyReport: Container or runtime type for Topology Report.
+  - No methods defined in this class.
+- _BlockingTextStream: Container or runtime type for Blocking Text Stream.
+  - _BlockingTextStream.__init__: Initializes the object.
+  - _BlockingTextStream.push: Handles push.
+  - _BlockingTextStream.close: Handles close.
+  - _BlockingTextStream.generator: Handles generator.
+- _ActiveTTSStreamSession: Container or runtime type for Active T T S Stream Session.
+  - No methods defined in this class.
+- _SpeculativeVLLMRequest: Container or runtime type for Speculative V L L M Request.
+  - No methods defined in this class.
+- _PreparedTTSFrame: Container or runtime type for Prepared T T S Frame.
+  - No methods defined in this class.
+- _SpeculativeTTSRequest: Container or runtime type for Speculative T T S Request.
   - No methods defined in this class.
 - VoicePipelineRuntime: Container or runtime type for Voice Pipeline Runtime.
   - VoicePipelineRuntime.__post_init__: Normalizes and validates fields after initialization.
@@ -533,29 +620,80 @@ Module with runtime support code.
   - VoicePipelineRuntime.topology_report: Handles topology report.
   - VoicePipelineRuntime.dry_run_report: Handles dry run report.
   - VoicePipelineRuntime.next_sequence_no: Handles next sequence no.
+  - VoicePipelineRuntime.reset_session_state: Resets session state.
+  - VoicePipelineRuntime._stable_session_summary: Handles stable session summary.
+  - VoicePipelineRuntime._cancel_speculative_vllm: Asynchronously handles cancel speculative vllm.
+  - VoicePipelineRuntime._cancel_speculative_tts: Asynchronously handles cancel speculative tts.
+  - VoicePipelineRuntime._run_speculative_vllm_request: Asynchronously handles run speculative vllm request.
+  - VoicePipelineRuntime._start_speculative_tts_for_text: Handles start speculative tts for text.
+  - VoicePipelineRuntime._run_speculative_tts_request: Asynchronously handles run speculative tts request.
+  - VoicePipelineRuntime._ensure_speculative_tts_drain_task: Handles ensure speculative tts drain task.
+  - VoicePipelineRuntime._drain_promoted_speculative_tts: Asynchronously handles drain promoted speculative tts.
+  - VoicePipelineRuntime._promote_speculative_tts_request: Asynchronously handles promote speculative tts request.
+  - VoicePipelineRuntime._maybe_prewarm_vllm_stable_prefix: Handles maybe prewarm vllm stable prefix.
+  - VoicePipelineRuntime.warm_vllm_runtime_probe: Warms vllm runtime probe.
+  - VoicePipelineRuntime._warm_tts_generator_runtime_probe: Asynchronously handles warm tts generator runtime probe.
+  - VoicePipelineRuntime.warm_tts_runtime_probe: Warms tts runtime probe.
   - VoicePipelineRuntime.start: Asynchronously handles start.
   - VoicePipelineRuntime.stop: Asynchronously handles stop.
   - VoicePipelineRuntime.run_forever: Asynchronously handles run forever.
   - VoicePipelineRuntime._tick_loop: Asynchronously handles tick loop.
   - VoicePipelineRuntime._record_latency: Handles record latency.
+  - VoicePipelineRuntime._pcm_bytes_rms_peak: Handles pcm bytes rms peak.
+  - VoicePipelineRuntime._update_tts_signal_metrics: Handles update tts signal metrics.
+  - VoicePipelineRuntime._start_tts_request_metrics: Handles start tts request metrics.
+  - VoicePipelineRuntime._record_tts_chunk_trace: Handles record tts chunk trace.
+  - VoicePipelineRuntime._trace_relative_ms: Handles trace relative ms.
+  - VoicePipelineRuntime._record_ingress_frame_trace: Handles record ingress frame trace.
+  - VoicePipelineRuntime._record_asr_event_trace: Handles record asr event trace.
+  - VoicePipelineRuntime.note_vad_speech_start: Handles note vad speech start.
+  - VoicePipelineRuntime._completed_greeting_tail_suffix: Handles completed greeting tail suffix.
+  - VoicePipelineRuntime._should_suppress_stale_greeting_asr_extension: Handles should suppress stale greeting asr extension.
+  - VoicePipelineRuntime._should_emit_tts_frame: Handles should emit tts frame.
+  - VoicePipelineRuntime._record_trimmed_tts_frame: Handles record trimmed tts frame.
+  - VoicePipelineRuntime._batch_opens_tts_leading_gate: Handles batch opens tts leading gate.
+  - VoicePipelineRuntime._tts_leading_batch_start_index: Handles tts leading batch start index.
+  - VoicePipelineRuntime._should_drop_final_tts_resampler_tail: Handles should drop final tts resampler tail.
   - VoicePipelineRuntime._authority_event: Handles authority event.
   - VoicePipelineRuntime._append_event: Handles append event.
   - VoicePipelineRuntime._asr_events_to_authority: Handles asr events to authority.
+  - VoicePipelineRuntime._filter_stale_asr_events: Handles filter stale asr events.
+  - VoicePipelineRuntime._encode_slot_payload: Handles encode slot payload.
+  - VoicePipelineRuntime._push_lane_slot: Handles push lane slot.
+  - VoicePipelineRuntime._mirror_authority_event_to_ring: Handles mirror authority event to ring.
+  - VoicePipelineRuntime._mirror_dispatch_command_to_ring: Handles mirror dispatch command to ring.
+  - VoicePipelineRuntime._mirror_pcm_frame_to_ring: Handles mirror pcm frame to ring.
   - VoicePipelineRuntime.process_pcm_frame: Asynchronously handles process pcm frame.
+  - VoicePipelineRuntime.finalize_asr_turn: Asynchronously handles finalize asr turn.
   - VoicePipelineRuntime._tick_and_stamp_commands: Asynchronously handles tick and stamp commands.
   - VoicePipelineRuntime._dispatch_commands: Asynchronously handles dispatch commands.
   - VoicePipelineRuntime.run_tick_and_dispatch: Asynchronously handles run tick and dispatch.
+  - VoicePipelineRuntime._execute_vllm_cancel_command: Asynchronously handles execute vllm cancel command.
+  - VoicePipelineRuntime._execute_tts_cancel_command: Asynchronously handles execute tts cancel command.
   - VoicePipelineRuntime._execute_vllm_command: Asynchronously handles execute vllm command.
   - VoicePipelineRuntime._execute_tts_command: Asynchronously handles execute tts command.
+  - VoicePipelineRuntime._execute_tts_append_command: Asynchronously handles execute tts append command.
+  - VoicePipelineRuntime._run_tts_stream_session: Asynchronously handles run tts stream session.
+  - VoicePipelineRuntime._reset_output_resampler: Handles reset output resampler.
   - VoicePipelineRuntime._resample_output: Handles resample output.
+  - VoicePipelineRuntime._output_frame_bytes: Handles output frame bytes.
+  - VoicePipelineRuntime._chunk_output_pcm: Handles chunk output pcm.
   - VoicePipelineRuntime.send_pcm_once: Asynchronously handles send pcm once.
   - VoicePipelineRuntime.latency_summary: Handles latency summary.
   - VoicePipelineRuntime.replay_state_hash: Handles replay state hash.
   - VoicePipelineRuntime.replay_event_hash: Handles replay event hash.
   - VoicePipelineRuntime.last_timestamps: Handles last timestamps.
+  - VoicePipelineRuntime.tts_signal_metrics: Handles tts signal metrics.
+  - VoicePipelineRuntime.ingress_frame_trace: Handles ingress frame trace.
+  - VoicePipelineRuntime.asr_event_trace: Handles asr event trace.
   - VoicePipelineRuntime.recovery_snapshot: Handles recovery snapshot.
 
 ### Functions
+- _single_fragment_generator: Handles single fragment generator.
+- _token_fragment_generator: Handles token fragment generator.
+- _push_tokenized_text: Handles push tokenized text.
+- _join_spoken_tokens: Handles join spoken tokens.
+- _should_insert_spoken_boundary_space: Handles should insert spoken boundary space.
 - _bind_cuda_device: Handles bind cuda device.
 - _assert_contract: Handles assert contract.
 - _identity_hash: Handles identity hash.
@@ -574,6 +712,12 @@ Module with runtime support code.
 - No top-level classes discovered in this module.
 
 ### Functions
+- _repo_root: Handles repo root.
+- _default_env_file: Handles default env file.
+- _configure_runtime_env: Handles configure runtime env.
+- _configure_cuda_library_path: Handles configure cuda library path.
+- _preload_cuda_runtime_libraries: Handles preload cuda runtime libraries.
+- _assert_runtime_contract: Handles assert runtime contract.
 - _parse_args: Handles parse args.
 - main: Handles main.
 
@@ -584,21 +728,36 @@ Module with runtime support code.
 - RuntimeConfig: Container or runtime type for Runtime Config.
   - RuntimeConfig.resolved_vllm_model_path: Handles resolved vllm model path.
   - RuntimeConfig.resolved_cosyvoice3_model_path: Handles resolved cosyvoice3 model path.
+  - RuntimeConfig.resolved_cosyvoice3_prompt_text: Handles resolved cosyvoice3 prompt text.
   - RuntimeConfig.from_env: Converts from env.
 
 ### Functions
+- _apply_runtime_defaults: Handles apply runtime defaults.
 - _load_env_file_once: Handles load env file once.
 
 ### runtime/livekit_bridge.py
 Module with runtime support code.
 
 ### Classes
+- _LocalInferenceExecutor: Container or runtime type for Local Inference Executor.
+  - _LocalInferenceExecutor.__init__: Initializes the object.
+  - _LocalInferenceExecutor.do_inference: Asynchronously handles do inference.
 - LiveKitRuntimeBridge: Container or runtime type for Live Kit Runtime Bridge.
   - LiveKitRuntimeBridge.__post_init__: Normalizes and validates fields after initialization.
+  - LiveKitRuntimeBridge.configure_debug_ingress_capture: Handles configure debug ingress capture.
+  - LiveKitRuntimeBridge.ingress_lock_state: Handles ingress lock state.
   - LiveKitRuntimeBridge._add_task: Handles add task.
+  - LiveKitRuntimeBridge._normalize_egress_pcm_frame: Handles normalize egress pcm frame.
   - LiveKitRuntimeBridge.start: Asynchronously handles start.
   - LiveKitRuntimeBridge.stop: Asynchronously handles stop.
+  - LiveKitRuntimeBridge._record_debug_ingress_pcm: Handles record debug ingress pcm.
+  - LiveKitRuntimeBridge._flush_debug_ingress_capture: Handles flush debug ingress capture.
   - LiveKitRuntimeBridge._consume_remote_audio: Asynchronously handles consume remote audio.
+  - LiveKitRuntimeBridge._build_silero_vad: Handles build silero vad.
+  - LiveKitRuntimeBridge._build_turn_detector: Handles build turn detector.
+  - LiveKitRuntimeBridge._turn_finalize_delay_seconds: Asynchronously handles turn finalize delay seconds.
+  - LiveKitRuntimeBridge._pcm_frame_rms: Handles pcm frame rms.
+  - LiveKitRuntimeBridge._pcm_frame_peak: Handles pcm frame peak.
   - LiveKitRuntimeBridge._emit_runtime_pcm: Asynchronously handles emit runtime pcm.
 
 ### Functions
@@ -611,9 +770,20 @@ Module with runtime support code.
 - No top-level classes discovered in this module.
 
 ### Functions
+- _describe_exception: Handles describe exception.
+- _runpod_livekit_proxy_url: Handles runpod livekit proxy url.
+- _client_livekit_url: Handles client livekit url.
+- _allowed_cors_origins: Handles allowed cors origins.
+- _failure_reason: Handles failure reason.
 - _runtime_readiness: Handles runtime readiness.
 - _runtime_telemetry: Handles runtime telemetry.
 - _system_config: Handles system config.
+- _pending_system_config: Handles pending system config.
+- _set_runtime_ingress_filter: Handles set runtime ingress filter.
+- _pending_runtime_readiness: Handles pending runtime readiness.
+- _reconcile_bootstrap_state: Handles reconcile bootstrap state.
+- _set_bootstrap_phase: Handles set bootstrap phase.
+- _bootstrap_runtime_background: Asynchronously handles bootstrap runtime background.
 - create_app: Creates app.
 
 ### runtime/topology.py
@@ -726,6 +896,7 @@ Module with runtime support code.
   - ASREngine.sample_rate: Handles sample rate.
   - ASREngine.warm: Handles warm.
   - ASREngine.start_session: Starts session.
+  - ASREngine._resample_input_audio: Handles resample input audio.
   - ASREngine.ingest_partial: Handles ingest partial.
   - ASREngine.ingest_final: Handles ingest final.
   - ASREngine.ingest_audio: Process PCM16 mono audio and emit partial/final transcript events.
@@ -755,6 +926,7 @@ Module with runtime support code.
   - LiveKitTransport.mark_bridge_disconnected: Handles mark bridge disconnected.
   - LiveKitTransport.record_ingress_frame: Handles record ingress frame.
   - LiveKitTransport.record_ingress_drop: Handles record ingress drop.
+  - LiveKitTransport.start_egress_request: Starts egress request.
   - LiveKitTransport.record_egress_frame: Handles record egress frame.
   - LiveKitTransport.ingress_metrics: Handles ingress metrics.
 
@@ -769,7 +941,9 @@ Module with runtime support code.
 - PCMClockSender: Container or runtime type for P C M Clock Sender.
   - PCMClockSender.__init__: Initializes the object.
   - PCMClockSender.depth: Handles depth.
+  - PCMClockSender.head_lease: Handles head lease.
   - PCMClockSender.enqueue: Handles enqueue.
+  - PCMClockSender.clear: Handles clear.
   - PCMClockSender._pop_fresh: Handles pop fresh.
   - PCMClockSender.oldest_age_ms: Handles oldest age ms.
   - PCMClockSender.run_once: Asynchronously handles run once.

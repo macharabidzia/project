@@ -25,8 +25,10 @@ class KernelConfig:
     stable_prefix_min_repeats: int = 2
     stable_prefix_min_tokens: int = 2
     stable_prefix_max_window: int = 3
+    allow_partial_turn_commit: bool = True
     tick_interval_ms: int = 2
     tts_fragment_min_tokens: int = 2
+    tts_first_fragment_min_tokens: int = 2
     tts_fragment_max_tokens: int = 6
     tts_context_window_tokens: int = 24
     latency_budget_ms: float = 150.0
@@ -38,7 +40,9 @@ class KernelConfig:
             stable_prefix_min_repeats=int(self.stable_prefix_min_repeats),
             stable_prefix_min_tokens=int(self.stable_prefix_min_tokens),
             stable_prefix_max_window=int(self.stable_prefix_max_window),
+            allow_partial_turn_commit=bool(self.allow_partial_turn_commit),
             tts_fragment_min_tokens=int(self.tts_fragment_min_tokens),
+            tts_first_fragment_min_tokens=int(self.tts_first_fragment_min_tokens),
             tts_fragment_max_tokens=int(self.tts_fragment_max_tokens),
             tts_context_window_tokens=int(self.tts_context_window_tokens),
         )
@@ -92,6 +96,18 @@ class KernelRuntime:
     def state(self):
         return self._state
 
+    @state.setter
+    def state(self, value) -> None:
+        self._state = value
+
+    @property
+    def diagnostics(self):
+        return self._diagnostics
+
+    @diagnostics.setter
+    def diagnostics(self, value) -> None:
+        self._diagnostics = value
+
     @property
     def event_log(self) -> tuple[AuthorityEvent, ...]:
         return tuple(self._event_log)
@@ -105,6 +121,18 @@ class KernelRuntime:
 
     def current_lease(self):
         return lease_snapshot(self._state)
+
+    def reset(self) -> None:
+        from voice_pipeline.kernel.state import KernelState
+
+        with self._apply_lock:
+            self._state = KernelState(session_id=self.session_id)
+            self._diagnostics = ReducerDiagnostics()
+            self._event_log.clear()
+            self._queued_events.clear()
+            self._queued_event_enqueued_ns.clear()
+            self._ingress_drop_count = 0
+            self._last_tick_ms = 0.0
 
     def _commit_transition(self, transition: ReducerTransition) -> None:
         self._state = transition.next_state

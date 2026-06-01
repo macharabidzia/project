@@ -18,7 +18,7 @@ VOSK_MODEL_NAME="${VOSK_MODEL_NAME:-vosk-model-small-en-us-0.15}"
 VOSK_MODEL_PATH="${VOSK_MODEL_PATH:-${MODELS_ROOT}/${VOSK_MODEL_NAME}}"
 VOSK_MODEL_URL="${VOSK_MODEL_URL:-https://alphacephei.com/vosk/models/${VOSK_MODEL_NAME}.zip}"
 COSYVOICE_REPO_URL="${COSYVOICE_REPO_URL:-https://github.com/FunAudioLLM/CosyVoice.git}"
-COSYVOICE_REPO_DIR="${COSYVOICE_REPO_DIR:-${ROOT_DIR}/.vendor/CosyVoice}"
+COSYVOICE_REPO_DIR="${COSYVOICE_REPO_DIR:-${ROOT_DIR}/.models/CosyVoice-runtime}"
 COSYVOICE_REPO_REF="${COSYVOICE_REPO_REF:-}"
 
 as_model_dir_name() {

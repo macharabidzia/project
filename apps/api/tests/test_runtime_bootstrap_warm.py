@@ -48,3 +48,34 @@ def test_bootstrap_warms_workers_in_architecture_order(monkeypatch, tmp_path: Pa
     assert runtime.warm_report.vllm_warm is True
     assert runtime.warm_report.tts_warm is True
     assert runtime.worker_status.kernel == "READY"
+
+
+def test_bootstrap_shutdowns_vllm_after_warm_failure(monkeypatch, tmp_path: Path) -> None:
+    shutdown_calls: list[str] = []
+
+    monkeypatch.setattr("voice_pipeline.runtime.bootstrap.hardware_admission_check", lambda config: None)
+    monkeypatch.setattr("voice_pipeline.runtime.bootstrap._warm_asr_engine", lambda asr, config, session_id: True)
+    monkeypatch.setattr(
+        "voice_pipeline.runtime.bootstrap._warm_vllm_engine",
+        lambda vllm, config: (_ for _ in ()).throw(RuntimeError("vllm warm failed")),
+    )
+    monkeypatch.setattr("voice_pipeline.runtime.bootstrap._warm_tts_engine", lambda tts, config, session_id: True)
+    monkeypatch.setattr(
+        "voice_pipeline.gpu.vllm_worker.engine.VLLMEngine.shutdown",
+        lambda self, timeout=None: shutdown_calls.append("vllm"),
+    )
+
+    runtime = bootstrap_runtime(
+        session_id="warm-failure-shutdown",
+        config=RuntimeConfig(
+            asr_model_path=str(tmp_path),
+            vllm_model_path=str(tmp_path),
+            vllm_cache_dir=str(tmp_path / "vllm-cache"),
+            cosyvoice3_model_path=str(tmp_path),
+            cosyvoice3_cache_dir=str(tmp_path / "cosy-cache"),
+        ),
+    )
+
+    assert runtime.warm_report.vllm_warm is False
+    assert runtime.worker_status.vllm == "FAILED"
+    assert shutdown_calls == ["vllm"]

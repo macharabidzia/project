@@ -87,6 +87,16 @@ class ASREngine:
             if hasattr(self._recognizer, "SetWords"):
                 self._recognizer.SetWords(True)
 
+    def _resample_input_audio(self, source_audio: np.ndarray) -> np.ndarray:
+        source_rate = int(self.config.input_sample_rate)
+        target_rate = int(self.config.sample_rate)
+        if source_audio.size == 0:
+            return np.empty(0, dtype=np.float32)
+        if source_rate == target_rate:
+            return np.ascontiguousarray(np.asarray(source_audio, dtype=np.float32).reshape(-1))
+
+        return self._resampler.resample(source_audio, source_rate)
+
     def ingest_partial(self, *, text: str, lineage_id: str) -> ASREvent:
         self._partial_text = str(text).strip()
         self._session_lineage_id = str(lineage_id or self._session_lineage_id).strip()
@@ -120,7 +130,7 @@ class ASREngine:
             raise RuntimeError("vosk_streaming_recognizer_unavailable")
 
         source_audio = np.frombuffer(bytes(pcm_chunk), dtype=np.int16).astype(np.float32) / 32768.0
-        resampled = self._resampler.resample(source_audio, int(self.config.input_sample_rate))
+        resampled = self._resample_input_audio(source_audio)
         if resampled.size == 0:
             return ()
         resampled_pcm = np.clip(resampled * 32767.0, -32768.0, 32767.0).astype("<i2").tobytes()
@@ -140,18 +150,31 @@ class ASREngine:
 
     def finalize(self, *, lineage_id: str = "") -> ASREvent | None:
         if self._recognizer is None:
-            text = self._partial_text or self._final_text
+            text = self._partial_text
             if text:
-                return self.ingest_final(text=text, lineage_id=lineage_id or self._session_lineage_id)
+                event = self.ingest_final(text=text, lineage_id=lineage_id or self._session_lineage_id)
+                self._final_text = ""
+                return event
             return None
 
         payload = _safe_json_loads(self._recognizer.FinalResult())
         text = str(payload.get("text", "")).strip()
         if not text:
-            text = self._partial_text or self._final_text
+            text = self._partial_text
         if not text:
             return None
-        return self.ingest_final(text=text, lineage_id=lineage_id or self._session_lineage_id)
+        event = self.ingest_final(text=text, lineage_id=lineage_id or self._session_lineage_id)
+        self._final_text = ""
+        return event
+
+    def shutdown(self) -> None:
+        self._recognizer = None
+        self._model = None
+        self._warm = False
+        self._session_lineage_id = ""
+        self._partial_text = ""
+        self._final_text = ""
+        self._resampler = StreamingAudioResampler(target_rate=int(self.config.sample_rate))
 
 
 def _safe_json_loads(data: str) -> dict[str, object]:

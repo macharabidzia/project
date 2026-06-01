@@ -15,6 +15,10 @@ class _FakeRuntime:
                 room_name="voice-runtime",
                 runtime_identity="voice-runtime-backend",
                 output_track_name="voice-runtime-out",
+                input_participant_identity="voice-test-client",
+                input_track_name="voice-test-input",
+                input_frame_ms=20,
+                single_ingress_track=True,
                 turn_enabled=True,
                 api_key="devkey",
                 api_secret="devsecret",
@@ -77,7 +81,11 @@ class _FakeRuntime:
             "asr_event_ns": 0,
             "kernel_decision_ns": 0,
             "vllm_first_token_ns": 0,
+            "tts_text_push_ns": 0,
+            "tts_native_stream_open_ns": 0,
             "tts_first_pcm_ns": 0,
+            "tts_gate_open_ns": 0,
+            "pcm_enqueue_ns": 0,
             "transport_emit_ns": 0,
         }
 
@@ -96,7 +104,7 @@ class _FakeBridge:
 
 def test_runtime_readiness_endpoint_has_required_contract_keys(monkeypatch) -> None:
     runtime = _FakeRuntime()
-    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config: runtime)
+    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config, progress_callback=None: runtime)
     monkeypatch.setattr(server, "LiveKitRuntimeBridge", _FakeBridge)
     app = server.create_app()
 

@@ -16,7 +16,33 @@ class _FakeKernel:
     def __init__(self) -> None:
         self.session_id = "runtime-contract"
         self.queued_event_count = 0
-        self.state = SimpleNamespace(output=SimpleNamespace(version=1))
+        self.state = SimpleNamespace(
+            phase="idle",
+            turn_index=0,
+            committed_turn_index=0,
+            generation_index=0,
+            lineage_id="runtime-contract:epoch:1",
+            active_vllm_request_id="",
+            active_tts_request_id="",
+            transcript=SimpleNamespace(
+                partial_text="",
+                partial_history=(),
+                stable_prefix="",
+                stable_prefix_confirmations=0,
+                last_dispatched_stable_prefix="",
+                final_text="",
+                committed_text="",
+                conversation_history=(),
+            ),
+            output=SimpleNamespace(
+                active_turn_id="",
+                version=1,
+                vllm_tokens=(),
+                vllm_stream_buffer=(),
+                pending_tts_segments=(),
+                emitted_audio_chunk_ids=(),
+            ),
+        )
 
     def current_lease(self) -> _FakeLease:
         return _FakeLease("runtime-contract:epoch:1")
@@ -57,6 +83,10 @@ class _FakeRuntime:
                 room_name="voice-runtime",
                 runtime_identity="voice-runtime-backend",
                 output_track_name="voice-runtime-out",
+                input_participant_identity="voice-test-client",
+                input_track_name="voice-test-input",
+                input_frame_ms=20,
+                single_ingress_track=True,
                 turn_enabled=True,
                 api_key="devkey",
                 api_secret="devsecret",
@@ -66,6 +96,7 @@ class _FakeRuntime:
         )
         self.kernel = _FakeKernel()
         self.vllm = _FakeVLLM()
+        self.tts = SimpleNamespace(debug_metrics=lambda: {"last_backend_path": "", "last_native_mode": "", "last_native_text": ""})
         class _Config:
             asr_device = "cpu"
             asr_model_path = "D:/models/vosk"
@@ -111,14 +142,36 @@ class _FakeRuntime:
     def latency_summary(self) -> dict[str, object]:
         return {}
 
+    def tts_signal_metrics(self) -> dict[str, object]:
+        return {}
+
+    def ingress_frame_trace(self) -> tuple[dict[str, object], ...]:
+        return ()
+
+    def asr_event_trace(self) -> tuple[dict[str, object], ...]:
+        return ()
+
     def last_timestamps(self) -> dict[str, int]:
         return {
             "ingress_received_ns": 1,
+            "vad_speech_start_ns": 2,
+            "first_asr_partial_ns": 3,
+            "stable_asr_partial_ns": 4,
+            "asr_final_ns": 5,
             "asr_event_ns": 2,
             "kernel_decision_ns": 3,
-            "vllm_first_token_ns": 4,
-            "tts_first_pcm_ns": 5,
-            "transport_emit_ns": 6,
+            "vllm_request_start_ns": 6,
+            "vllm_first_token_ns": 7,
+            "first_spoken_delta_ns": 8,
+            "tts_text_push_ns": 9,
+            "tts_native_stream_open_ns": 10,
+            "tts_first_pcm_ns": 11,
+            "tts_gate_open_ns": 12,
+            "resampler_first_output_ns": 13,
+            "pcm_enqueue_ns": 14,
+            "pcm_send_ns": 15,
+            "transport_emit_ns": 16,
+            "livekit_egress_ns": 17,
         }
 
 
@@ -133,10 +186,18 @@ class _FakeBridge:
     async def stop(self) -> None:
         return None
 
+    def ingress_lock_state(self) -> dict[str, object]:
+        return {
+            "active": False,
+            "publication_sid": "",
+            "participant_identity": "",
+            "track_name": "",
+        }
+
 
 def test_runtime_readiness_contains_required_fields(monkeypatch) -> None:
     runtime = _FakeRuntime()
-    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config: runtime)
+    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config, progress_callback=None: runtime)
     monkeypatch.setattr(server, "LiveKitRuntimeBridge", _FakeBridge)
 
     app = server.create_app()
@@ -178,7 +239,7 @@ def test_runtime_readiness_contains_required_fields(monkeypatch) -> None:
 
 def test_runtime_telemetry_contains_contract_timestamps_and_backpressure(monkeypatch) -> None:
     runtime = _FakeRuntime()
-    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config: runtime)
+    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config, progress_callback=None: runtime)
     monkeypatch.setattr(server, "LiveKitRuntimeBridge", _FakeBridge)
 
     app = server.create_app()
@@ -187,11 +248,24 @@ def test_runtime_telemetry_contains_contract_timestamps_and_backpressure(monkeyp
 
     assert set(payload["timestamps"].keys()) == {
         "ingress_received_ns",
+        "vad_speech_start_ns",
+        "first_asr_partial_ns",
+        "stable_asr_partial_ns",
+        "asr_final_ns",
         "asr_event_ns",
         "kernel_decision_ns",
+        "vllm_request_start_ns",
         "vllm_first_token_ns",
+        "first_spoken_delta_ns",
+        "tts_text_push_ns",
+        "tts_native_stream_open_ns",
         "tts_first_pcm_ns",
+        "tts_gate_open_ns",
+        "resampler_first_output_ns",
+        "pcm_enqueue_ns",
+        "pcm_send_ns",
         "transport_emit_ns",
+        "livekit_egress_ns",
     }
     assert payload["backpressure"]["text_oldest_age_ms"] >= 0
     assert payload["backpressure"]["text_drops"] >= 0
@@ -199,11 +273,16 @@ def test_runtime_telemetry_contains_contract_timestamps_and_backpressure(monkeyp
     assert payload["backpressure"]["audio_stale_drops"] >= 0
     assert payload["llm_prefix_cache_stats"]["hits"] == 3
     assert payload["llm_prefix_cache_stats"]["misses"] == 1
+    assert payload["tts_backend_path"] == ""
+    assert payload["tts_first_pcm_ms"] >= 0
+    assert payload["llm_first_token_ms"] >= 0
+    assert payload["tts_first_text_to_first_pcm_ms"] >= 0
+    assert payload["transport_delay_ms"] >= 0
 
 
 def test_runtime_alias_endpoints_match_v1_system_routes(monkeypatch) -> None:
     runtime = _FakeRuntime()
-    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config: runtime)
+    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config, progress_callback=None: runtime)
     monkeypatch.setattr(server, "LiveKitRuntimeBridge", _FakeBridge)
 
     app = server.create_app()
@@ -222,7 +301,7 @@ def test_runtime_alias_endpoints_match_v1_system_routes(monkeypatch) -> None:
 def test_runtime_readiness_is_false_when_kernel_not_ready(monkeypatch) -> None:
     runtime = _FakeRuntime()
     runtime.worker_status.kernel = "WARMING"
-    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config: runtime)
+    monkeypatch.setattr(server, "bootstrap_runtime", lambda session_id, config, progress_callback=None: runtime)
     monkeypatch.setattr(server, "LiveKitRuntimeBridge", _FakeBridge)
 
     app = server.create_app()

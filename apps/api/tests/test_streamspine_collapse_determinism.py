@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from voice_pipeline.kernel.kernel_runtime import KernelRuntime
+from voice_pipeline.kernel.kernel_runtime import KernelConfig, KernelRuntime
 from voice_pipeline.shared.types import new_authority_event
 
 
@@ -29,7 +29,8 @@ def test_identical_event_streams_reconstruct_identical_state() -> None:
 
 def test_reordered_transport_events_keep_semantic_phase_stable() -> None:
     session_id = "reorder"
-    loop = KernelRuntime(session_id=session_id)
+    config = KernelConfig(tts_first_fragment_min_tokens=1)
+    loop = KernelRuntime(session_id=session_id, config=config)
 
     vllm_requested = new_authority_event(
         event_type="VLLMRequested",
@@ -74,8 +75,8 @@ def test_reordered_transport_events_keep_semantic_phase_stable() -> None:
         causation_id=vllm_request_event.event_id,
     )
 
-    ordered = KernelRuntime(session_id=session_id).replay([vllm_requested, token_a, token_b])
-    reordered = KernelRuntime(session_id=session_id).replay([vllm_requested, token_b_first, token_a_second])
+    ordered = KernelRuntime(session_id=session_id, config=config).replay([vllm_requested, token_a, token_b])
+    reordered = KernelRuntime(session_id=session_id, config=config).replay([vllm_requested, token_b_first, token_a_second])
 
     assert ordered.state.phase == reordered.state.phase
     assert ordered.state.output.version == reordered.state.output.version
@@ -139,6 +140,5 @@ def test_cancellation_precedence_clears_active_requests() -> None:
     assert result.state.phase in {"cancelled", "idle"}
     assert result.state.active_vllm_request_id == ""
     assert result.state.active_tts_request_id == ""
-
 
 

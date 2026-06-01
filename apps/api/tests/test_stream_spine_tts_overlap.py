@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from voice_pipeline.kernel.kernel_runtime import KernelRuntime
+from voice_pipeline.kernel.kernel_runtime import KernelConfig, KernelRuntime
 from voice_pipeline.shared.types import new_authority_event
 
 
 def test_kernel_runtime_emits_tts_request_from_first_llm_fragment() -> None:
-    kernel = KernelRuntime(session_id="session-1")
+    kernel = KernelRuntime(
+        session_id="session-1",
+        config=KernelConfig(tts_first_fragment_min_tokens=1),
+    )
 
     first_partial = new_authority_event(
         event_type="ASRPartialReceived",

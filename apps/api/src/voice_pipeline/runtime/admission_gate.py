@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import platform
+import subprocess
 import time
 from dataclasses import dataclass
 
@@ -18,6 +19,22 @@ class AdmissionConfig:
     require_avx2: bool = True
     max_socket_buffer_bytes: int = 262_144
     required_clock_source: str = "CLOCK_MONOTONIC"
+
+
+@dataclass(frozen=True, slots=True)
+class _GpuInventoryEntry:
+    index: int
+    total_memory_mib: int
+    free_memory_mib: int
+    uuid: str
+
+
+@dataclass(frozen=True, slots=True)
+class _GpuProcessEntry:
+    gpu_uuid: str
+    pid: int
+    process_name: str
+    used_memory_mib: int
 
 
 _TRUTHY = {"1", "true", "yes", "on"}
@@ -164,20 +181,116 @@ def _check_optional_speaker_asset(path_value: str) -> None:
 
 
 def _check_cuda_device(label: str, device_name: str) -> None:
-    try:
-        import torch  # type: ignore
-    except Exception as exc:
-        raise AdmissionError(f"hardware admission failed: torch unavailable for {label}") from exc
-
-    if not torch.cuda.is_available():
-        raise AdmissionError(f"hardware admission failed: CUDA unavailable for {label}")
-
     device_text = str(device_name or "").strip().lower()
     if not device_text.startswith("cuda:"):
         raise AdmissionError(f"hardware admission failed: {label} must bind to cuda device, got {device_name}")
     device_index = int(device_text.split(":", 1)[1])
-    if device_index >= int(torch.cuda.device_count()):
+    if device_index >= _visible_cuda_device_count():
         raise AdmissionError(f"hardware admission failed: {label} device {device_name} missing")
+    inventory = _gpu_inventory()
+    device = inventory.get(device_index)
+    if device is None:
+        raise AdmissionError(
+            f"hardware admission failed: {label} device {device_name} missing from nvidia-smi inventory"
+        )
+    active_processes = _gpu_compute_processes().get(device.uuid, ())
+    if active_processes:
+        process_summary = ", ".join(
+            f"pid={entry.pid} name={entry.process_name} mem={entry.used_memory_mib}MiB"
+            for entry in active_processes
+        )
+        raise AdmissionError(
+            "hardware admission failed: "
+            f"{label} device {device_name} busy "
+            f"(free={device.free_memory_mib}MiB total={device.total_memory_mib}MiB, active_compute={process_summary})"
+        )
+
+
+def _visible_cuda_device_count() -> int:
+    output = _run_nvidia_smi(["--list-gpus"])
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    return len(lines)
+
+
+def _gpu_inventory() -> dict[int, _GpuInventoryEntry]:
+    output = _run_nvidia_smi(
+        ["--query-gpu=index,memory.total,memory.free,gpu_uuid", "--format=csv,noheader,nounits"]
+    )
+    inventory: dict[int, _GpuInventoryEntry] = {}
+    for raw_line in output.splitlines():
+        line = str(raw_line).strip()
+        if not line:
+            continue
+        parts = [item.strip() for item in line.split(",")]
+        if len(parts) != 4:
+            raise AdmissionError(f"hardware admission failed: unexpected nvidia-smi gpu row: {line}")
+        entry = _GpuInventoryEntry(
+            index=int(parts[0]),
+            total_memory_mib=int(parts[1]),
+            free_memory_mib=int(parts[2]),
+            uuid=str(parts[3]),
+        )
+        inventory[entry.index] = entry
+    return inventory
+
+
+def _gpu_compute_processes() -> dict[str, tuple[_GpuProcessEntry, ...]]:
+    try:
+        output = _run_nvidia_smi(
+            [
+                "--query-compute-apps=gpu_uuid,pid,process_name,used_gpu_memory",
+                "--format=csv,noheader,nounits",
+            ]
+        )
+    except AdmissionError as exc:
+        message = str(exc)
+        if "No running processes found" in message:
+            return {}
+        raise
+    grouped: dict[str, list[_GpuProcessEntry]] = {}
+    for raw_line in output.splitlines():
+        line = str(raw_line).strip()
+        if not line:
+            continue
+        parts = [item.strip() for item in line.split(",")]
+        if len(parts) != 4:
+            raise AdmissionError(f"hardware admission failed: unexpected nvidia-smi compute row: {line}")
+        entry = _GpuProcessEntry(
+            gpu_uuid=str(parts[0]),
+            pid=int(parts[1]),
+            process_name=str(parts[2]),
+            used_memory_mib=int(parts[3]),
+        )
+        grouped.setdefault(entry.gpu_uuid, []).append(entry)
+    return {gpu_uuid: tuple(entries) for gpu_uuid, entries in grouped.items()}
+
+
+def _run_nvidia_smi(args: list[str]) -> str:
+    try:
+        completed = subprocess.run(
+            ["nvidia-smi", *args],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5.0,
+        )
+    except FileNotFoundError as exc:
+        raise AdmissionError("hardware admission failed: nvidia-smi is unavailable") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise AdmissionError("hardware admission failed: nvidia-smi timed out") from exc
+    except subprocess.CalledProcessError as exc:
+        stderr = str(exc.stderr or "").strip()
+        raise AdmissionError(
+            "hardware admission failed: nvidia-smi failed"
+            + (f": {stderr}" if stderr else "")
+        ) from exc
+    stdout = str(completed.stdout or "").strip()
+    stderr = str(completed.stderr or "").strip()
+    if stdout:
+        return stdout
+    if stderr:
+        return stderr
+    return ""
 
 
 def _check_livekit_config(config: RuntimeConfig) -> None:
@@ -215,11 +328,7 @@ def hardware_admission_check(
         raise AdmissionError(f"hardware admission failed: vLLM device must be cuda:0, got {config.llm_device}")
     if str(config.tts_device).strip().lower() != "cuda:1":
         raise AdmissionError(f"hardware admission failed: CosyVoice3 device must be cuda:1, got {config.tts_device}")
-    try:
-        import torch  # type: ignore
-    except Exception as exc:
-        raise AdmissionError("hardware admission failed: torch unavailable for CUDA validation") from exc
-    if not torch.cuda.is_available() or int(torch.cuda.device_count()) < 2:
+    if _visible_cuda_device_count() < 2:
         raise AdmissionError("hardware admission failed: fewer than 2 CUDA devices are visible")
     _check_cuda_device("vLLM", config.llm_device)
     _check_cuda_device("CosyVoice3", config.tts_device)

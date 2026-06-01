@@ -3,8 +3,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from runtime_entrypoint import ensure_runtime_library_path, ensure_runtime_python
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 API_SRC = REPO_ROOT / "apps" / "api" / "src"
+
+ensure_runtime_python()
+ensure_runtime_library_path()
 if str(API_SRC) not in sys.path:
     sys.path.insert(0, str(API_SRC))
 

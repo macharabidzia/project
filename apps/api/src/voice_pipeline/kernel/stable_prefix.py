@@ -37,18 +37,35 @@ def detect_stable_prefix(
         return StablePrefixDecision()
 
     window = normalized[-max(1, int(max_window)) :]
+    min_repeat_count = max(1, int(min_repeats))
+    min_token_count = max(1, int(min_tokens))
+
+    if min_repeat_count <= 1:
+        common_tokens = tuple(window[0].split())
+        for candidate in window[1:]:
+            common_tokens = _token_prefix(common_tokens, tuple(candidate.split()))
+            if not common_tokens:
+                break
+        if len(common_tokens) >= min_token_count:
+            return StablePrefixDecision(prefix=" ".join(common_tokens), confirmations=1)
+        latest = window[-1]
+        latest_tokens = tuple(latest.split())
+        if len(latest_tokens) < min_token_count:
+            return StablePrefixDecision()
+        return StablePrefixDecision(prefix=latest, confirmations=1)
+
     common_tokens = tuple(window[0].split())
     for candidate in window[1:]:
         common_tokens = _token_prefix(common_tokens, tuple(candidate.split()))
         if not common_tokens:
             return StablePrefixDecision()
 
-    if len(common_tokens) < max(1, int(min_tokens)):
+    if len(common_tokens) < min_token_count:
         return StablePrefixDecision()
 
     stable_prefix = " ".join(common_tokens)
     confirmations = sum(1 for item in window if item.startswith(stable_prefix))
-    if confirmations < max(1, int(min_repeats)):
+    if confirmations < min_repeat_count:
         return StablePrefixDecision()
 
     avg_token_len = sum(len(item.split()) for item in window) / float(len(window))

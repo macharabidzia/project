@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Literal, Mapping
 
 
-CommandKind = Literal["VLLM", "TTS", "TRANSPORT", "VLLM_CANCEL", "TTS_CANCEL"]
+CommandKind = Literal["VLLM", "TTS", "TTS_APPEND", "TRANSPORT", "VLLM_CANCEL", "TTS_CANCEL"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,6 +50,7 @@ def build_tts_command(
     turn_id: str,
     epoch_id: str,
     stream_fragment: bool,
+    close_stream_immediately: bool = False,
 ) -> DispatchCommand:
     return DispatchCommand(
         kind="TTS",
@@ -62,6 +63,33 @@ def build_tts_command(
             "turn_id": str(turn_id),
             "epoch_id": str(epoch_id),
             "stream_fragment": bool(stream_fragment),
+            "close_stream_immediately": bool(close_stream_immediately),
+        },
+    )
+
+
+def build_tts_append_command(
+    *,
+    session_id: str,
+    request_id: str,
+    text: str,
+    output_version: int,
+    lineage_id: str,
+    turn_id: str,
+    epoch_id: str,
+    final_fragment: bool,
+) -> DispatchCommand:
+    return DispatchCommand(
+        kind="TTS_APPEND",
+        request_id=str(request_id),
+        payload={
+            "session_id": str(session_id),
+            "text": str(text),
+            "output_version": int(output_version),
+            "lineage_id": str(lineage_id),
+            "turn_id": str(turn_id),
+            "epoch_id": str(epoch_id),
+            "final_fragment": bool(final_fragment),
         },
     )
 
@@ -111,6 +139,7 @@ def build_tts_cancel_command(
 __all__ = [
     "CommandKind",
     "DispatchCommand",
+    "build_tts_append_command",
     "build_tts_cancel_command",
     "build_tts_command",
     "build_vllm_cancel_command",

@@ -4,8 +4,13 @@ import asyncio
 import sys
 from pathlib import Path
 
+from runtime_entrypoint import ensure_runtime_library_path, ensure_runtime_python
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 API_SRC = REPO_ROOT / "apps" / "api" / "src"
+
+ensure_runtime_python()
+ensure_runtime_library_path()
 if str(API_SRC) not in sys.path:
     sys.path.insert(0, str(API_SRC))
 
@@ -37,11 +42,15 @@ async def _run() -> int:
     engine = TTSEngine(
         config.resolved_cosyvoice3_model_path(),
         sample_rate=24_000,
+        prompt_text=config.resolved_cosyvoice3_prompt_text(),
         prompt_speech_path=config.cosyvoice3_speaker_path,
+        required_device=config.tts_device,
+        cache_dir=config.cosyvoice3_cache_dir,
     )
     engine.warm(strict=True)
     engine.start_persistent_session(
         epoch_id="real-cosyvoice3-smoke:epoch:1",
+        prompt_text=config.resolved_cosyvoice3_prompt_text(),
         prompt_speech_path=config.cosyvoice3_speaker_path,
     )
 

@@ -21,6 +21,13 @@ def main() -> int:
         'WORKER_EXTRAS="dev,asr,gpu,response-model"',
         'verify_asr_runtime "${ACTIVE_WORKER_PYTHON}"',
         'install_cosyvoice_runtime "${ACTIVE_WORKER_PYTHON}"',
+        '"voice_pipeline.gpu.tts_worker.engine"',
+        '"numpy",',
+        '"protobuf",',
+        '"pydantic",',
+        '"rich",',
+        '"transformers",',
+        '_print_version("flashinfer-jit-cache", required=False)',
     )
     for token in required_tokens:
         _expect_contains(violations, text=text, token=token)

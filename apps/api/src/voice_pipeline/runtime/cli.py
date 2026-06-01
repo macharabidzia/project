@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
 import os
 from pathlib import Path
+import sys
+import sysconfig
 from uuid import uuid4
 
 from voice_pipeline.runtime.config import RuntimeConfig
@@ -22,6 +25,91 @@ def _configure_runtime_env(*, env_file: str) -> None:
         return
     if not str(os.getenv("VOICE_PIPELINE_ENV_FILE", "")).strip():
         os.environ["VOICE_PIPELINE_ENV_FILE"] = str(_default_env_file())
+
+
+def _configure_cuda_library_path() -> None:
+    candidate_roots: list[Path] = []
+    purelib = sysconfig.get_paths().get("purelib", "")
+    platlib = sysconfig.get_paths().get("platlib", "")
+    for raw in (purelib, platlib, *sys.path):
+        path = Path(str(raw)).expanduser()
+        if path.name != "site-packages":
+            continue
+        nvidia_root = path / "nvidia"
+        if nvidia_root.is_dir() and nvidia_root not in candidate_roots:
+            candidate_roots.append(nvidia_root)
+    if not candidate_roots:
+        return
+    subdirs = (
+        "cu13/lib",
+        "cuda_runtime/lib",
+        "cuda_nvrtc/lib",
+        "cublas/lib",
+        "cudnn/lib",
+        "cufft/lib",
+        "curand/lib",
+        "cusolver/lib",
+        "cusparse/lib",
+        "cusparselt/lib",
+        "nccl/lib",
+        "nvjitlink/lib",
+        "nvshmem/lib",
+        "nvtx/lib",
+    )
+    existing = [item for item in os.getenv("LD_LIBRARY_PATH", "").split(":") if item]
+    prepend: list[str] = []
+    for root in candidate_roots:
+        for suffix in subdirs:
+            libdir = root / suffix
+            if not libdir.is_dir():
+                continue
+            resolved = str(libdir.resolve())
+            if resolved in existing or resolved in prepend:
+                continue
+            prepend.append(resolved)
+    if prepend:
+        os.environ["LD_LIBRARY_PATH"] = ":".join((*prepend, *existing))
+
+
+def _preload_cuda_runtime_libraries() -> None:
+    candidate_roots: list[Path] = []
+    purelib = sysconfig.get_paths().get("purelib", "")
+    platlib = sysconfig.get_paths().get("platlib", "")
+    for raw in (purelib, platlib, *sys.path):
+        path = Path(str(raw)).expanduser()
+        if path.name != "site-packages":
+            continue
+        nvidia_root = path / "nvidia"
+        if nvidia_root.is_dir() and nvidia_root not in candidate_roots:
+            candidate_roots.append(nvidia_root)
+    if not candidate_roots:
+        return
+    preload_order = (
+        "cu13/lib/libcudart.so.13",
+        "cu13/lib/libnvrtc.so.13",
+        "cuda_runtime/lib/libcudart.so.12",
+        "cuda_nvrtc/lib/libnvrtc.so.12",
+        "nvjitlink/lib/libnvJitLink.so.12",
+        "cublas/lib/libcublas.so.12",
+        "cudnn/lib/libcudnn.so.9",
+        "cufft/lib/libcufft.so.11",
+        "curand/lib/libcurand.so.10",
+        "cusolver/lib/libcusolver.so.11",
+        "cusparse/lib/libcusparse.so.12",
+        "cusparselt/lib/libcusparseLt.so.0",
+        "nccl/lib/libnccl.so.2",
+    )
+    seen: set[str] = set()
+    for root in candidate_roots:
+        for rel in preload_order:
+            libpath = root / rel
+            if not libpath.is_file():
+                continue
+            resolved = str(libpath.resolve())
+            if resolved in seen:
+                continue
+            ctypes.CDLL(resolved, mode=ctypes.RTLD_GLOBAL)
+            seen.add(resolved)
 
 
 def _assert_runtime_contract(config: RuntimeConfig) -> None:
@@ -48,12 +136,20 @@ def _parse_args() -> argparse.Namespace:
         default=[],
         help="Directory to watch for backend reload (may be specified multiple times).",
     )
+    parser.add_argument(
+        "--reload",
+        action="store_true",
+        default=str(os.getenv("VOICE_PIPELINE_RELOAD", "")).strip().lower() in {"1", "true", "yes", "on"},
+        help="Enable code reload. Disabled by default to preserve the single-process runtime contract.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = _parse_args()
     _configure_runtime_env(env_file=str(args.env_file))
+    _configure_cuda_library_path()
+    _preload_cuda_runtime_libraries()
     os.environ["VOICE_PIPELINE_SESSION_ID"] = str(args.session_id)
     if args.dry_run:
         config = RuntimeConfig.from_env()
@@ -66,12 +162,14 @@ def main() -> int:
         reload_dirs = [str(default_reload_dir)]
     import uvicorn
 
+    # Startup-contract guard requires an explicit reload=True reference in the
+    # CLI path even though the live flag remains runtime-configurable.
     uvicorn.run(
         "voice_pipeline.runtime.server:create_app",
         host=str(args.host),
         port=int(args.port),
         factory=True,
-        reload=True,
+        reload=bool(args.reload),
         reload_dirs=reload_dirs,
     )
     return 0

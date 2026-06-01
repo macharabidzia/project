@@ -8,9 +8,13 @@ import wave
 from pathlib import Path
 
 import numpy as np
+from runtime_entrypoint import ensure_runtime_library_path, ensure_runtime_python
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 API_SRC = REPO_ROOT / "apps" / "api" / "src"
+
+ensure_runtime_python()
+ensure_runtime_library_path()
 if str(API_SRC) not in sys.path:
     sys.path.insert(0, str(API_SRC))
 
@@ -60,6 +64,11 @@ def _require_real_smoke_inputs(config: RuntimeConfig) -> Path:
     return wav_path
 
 
+def _skip_lane_smokes() -> bool:
+    value = str(os.getenv("VOICE_PIPELINE_SKIP_LANE_SMOKES", "")).strip().lower()
+    return value in {"1", "true", "yes", "on"}
+
+
 def _wav_to_runtime_pcm_frames(*, wav_path: Path, runtime_sample_rate: int, frame_ms: int) -> tuple[bytes, ...]:
     with wave.open(str(wav_path), "rb") as handle:
         channels = int(handle.getnchannels())
@@ -90,29 +99,36 @@ def _wav_to_runtime_pcm_frames(*, wav_path: Path, runtime_sample_rate: int, fram
 async def _run_runtime_full_chain_probe() -> int:
     config = RuntimeConfig.from_env()
     wav_path = _require_real_smoke_inputs(config)
+    print("real-backend-smoke: bootstrapping runtime", flush=True)
     runtime = bootstrap_runtime(session_id="real-backend-smoke", config=RuntimeConfig.from_env())
     bridge = LiveKitRuntimeBridge(runtime=runtime, transport=runtime.transport)
     runtime.worker_status.transport = "WARMING"
+    print("real-backend-smoke: starting livekit bridge", flush=True)
     await bridge.start()
+    print("real-backend-smoke: starting runtime loop", flush=True)
     await runtime.start()
     try:
         if not runtime.global_ready():
             raise RuntimeError("runtime not globally READY after LiveKit bridge start")
 
+        print("real-backend-smoke: preparing ingress frames", flush=True)
         ingress_frames = _wav_to_runtime_pcm_frames(
             wav_path=wav_path,
             runtime_sample_rate=int(config.input_sample_rate),
             frame_ms=int(config.frame_ms),
         )
+        print(f"real-backend-smoke: ingesting {len(ingress_frames)} frames", flush=True)
         for frame in ingress_frames:
             await runtime.process_pcm_frame(frame)
 
+        print("real-backend-smoke: finalizing asr", flush=True)
         asr_final = runtime.asr.finalize(lineage_id=runtime.kernel.current_lease().epoch_id)
         if asr_final is not None:
             for authority_event in runtime._asr_events_to_authority((asr_final,), ingress_received_ns=now_ns()):
                 runtime._append_event(authority_event)
             await runtime.run_tick_and_dispatch()
 
+        print("real-backend-smoke: checking authority events", flush=True)
         event_types = [record.get("type", "") for record in runtime.event_log.as_records() if isinstance(record, dict)]
         required = (
             "ASRFinalReceived",
@@ -125,6 +141,7 @@ async def _run_runtime_full_chain_probe() -> int:
         if missing:
             raise RuntimeError(f"full chain missing required authority events: {missing}")
 
+        print("real-backend-smoke: checking transport egress", flush=True)
         transport_metrics = runtime.transport.ingress_metrics()
         if int(transport_metrics.get("transport_egress_frames", 0)) <= 0:
             raise RuntimeError("LiveKit egress emitted zero frames")
@@ -145,15 +162,16 @@ async def _run_runtime_full_chain_probe() -> int:
 
 def main() -> int:
     try:
-        lane_smokes = (
-            REPO_ROOT / "scripts" / "run_real_vosk_smoke.py",
-            REPO_ROOT / "scripts" / "run_real_vllm_smoke.py",
-            REPO_ROOT / "scripts" / "run_real_cosyvoice3_smoke.py",
-        )
-        for script_path in lane_smokes:
-            code = _run_script(script_path)
-            if code != 0:
-                return int(code)
+        if not _skip_lane_smokes():
+            lane_smokes = (
+                REPO_ROOT / "scripts" / "run_real_vosk_smoke.py",
+                REPO_ROOT / "scripts" / "run_real_vllm_smoke.py",
+                REPO_ROOT / "scripts" / "run_real_cosyvoice3_smoke.py",
+            )
+            for script_path in lane_smokes:
+                code = _run_script(script_path)
+                if code != 0:
+                    return int(code)
         return asyncio.run(_run_runtime_full_chain_probe())
     except Exception as exc:
         print(f"real-backend-smoke: FAILED ({exc})")

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-29T17:30:07.727117+00:00",
+  "generated_at": "2026-06-01T07:31:51.172592+00:00",
   "module_edges": [
     {
       "imports": [],
@@ -244,6 +244,7 @@
     {
       "imports": [
         "voice_pipeline.bus.ring_topology",
+        "voice_pipeline.bus.ring_types",
         "voice_pipeline.gpu.tts_worker.engine",
         "voice_pipeline.gpu.tts_worker.stream",
         "voice_pipeline.gpu.vllm_worker.engine",
@@ -268,7 +269,6 @@
     },
     {
       "imports": [
-        "voice_pipeline.runtime.bootstrap",
         "voice_pipeline.runtime.config"
       ],
       "module": "voice_pipeline.runtime.cli"
@@ -280,6 +280,7 @@
     {
       "imports": [
         "voice_pipeline.runtime.bootstrap",
+        "voice_pipeline.shared.time",
         "voice_pipeline.transport.livekit_transport"
       ],
       "module": "voice_pipeline.runtime.livekit_bridge"

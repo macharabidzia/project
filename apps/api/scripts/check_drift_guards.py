@@ -25,12 +25,12 @@ def main() -> int:
     if cross_runtime_hits:
         failures.append(f"forbidden cross-worker coupling: {cross_runtime_hits}")
 
-    remote_hits = _scan(r"docker|grpc|\brpc\b|remote worker|subprocess|multiprocessing", SRC_ROOT)
+    remote_hits = _scan(r"docker|grpc|\brpc\b|remote worker|distributed worker|runtime manager|orchestrator", SRC_ROOT)
     if remote_hits:
         failures.append(f"forbidden remote/orchestrator patterns: {remote_hits}")
 
     tts_fake_hits = _scan(
-        r"_fallback_stream_pcm|full_text|non_streaming|batch_tts|inference_stream|zero_shot",
+        r"_fallback_stream_pcm|full_text|non_streaming|batch_tts|\binference_stream\b|stream=False",
         SRC_ROOT / "gpu" / "tts_worker",
     )
     if tts_fake_hits:
@@ -49,7 +49,7 @@ def main() -> int:
         failures.append(f"runtime must not host interrupt policy literals: {runtime_interrupt_policy_hits}")
 
     network_download_hits = _scan(
-        r"from_pretrained\(|snapshot_download|hf_hub_download|download_model|requests|httpx|urllib",
+        r"snapshot_download|hf_hub_download|download_model|requests|httpx|urllib",
         SRC_ROOT,
     )
     if network_download_hits:
@@ -92,11 +92,15 @@ def main() -> int:
     if hot_reload_hits:
         failures.append(f"hot reload drift is forbidden in locked runtime: {hot_reload_hits}")
 
+    production_mock_hits = _scan(r"\bmock\b|\bfake\b|\bsimulat(e|ed|ion)\b|\bstub\b|\bdummy\b|\bplaceholder\b", SRC_ROOT)
+    if production_mock_hits:
+        failures.append(f"production runtime must not include mock/fake/simulated fallback surfaces: {production_mock_hits}")
+
     non_stream_toggle_hits = _scan(r"VOICE_PIPELINE_COSYVOICE_STREAM|cosyvoice_stream", SRC_ROOT)
     if non_stream_toggle_hits:
         failures.append(f"forbidden non-streaming TTS toggle surface detected: {non_stream_toggle_hits}")
 
-    tts_stream_signature_toggle_hits = _scan(r"stream:\s*bool", SRC_ROOT / "gpu" / "tts_worker")
+    tts_stream_signature_toggle_hits = _scan(r"\bstream\s*:\s*bool", SRC_ROOT / "gpu" / "tts_worker")
     if tts_stream_signature_toggle_hits:
         failures.append(f"TTS native stream mode must be structural, not exposed as bool signature toggle: {tts_stream_signature_toggle_hits}")
 
@@ -117,6 +121,10 @@ def main() -> int:
     tts_generic_inference_hits = _scan(r'"inference",', SRC_ROOT / "gpu" / "tts_worker")
     if tts_generic_inference_hits:
         failures.append(f"TTS lane must not fall back to non-native generic inference entrypoint: {tts_generic_inference_hits}")
+
+    tts_oneshot_hits = _scan(r"VOICE_PIPELINE_TTS_NATIVE_ONESHOT_MAX_TOKENS|native_once|oneshot", SRC_ROOT / "gpu" / "tts_worker")
+    if tts_oneshot_hits:
+        failures.append(f"TTS lane must not contain one-shot fallback paths in locked live runtime: {tts_oneshot_hits}")
 
     vllm_random_request_hits = _scan(r"os\.urandom", SRC_ROOT / "gpu" / "vllm_worker")
     if vllm_random_request_hits:

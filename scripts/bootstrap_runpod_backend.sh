@@ -46,7 +46,7 @@ RESPONSE_MODEL_FLASHINFER_PYTHON_SPEC="${RESPONSE_MODEL_FLASHINFER_PYTHON_SPEC:-
 RESPONSE_MODEL_FLASHINFER_CUBIN_SPEC="${RESPONSE_MODEL_FLASHINFER_CUBIN_SPEC:-flashinfer-cubin==0.6.11.post3}"
 RESPONSE_MODEL_FLASHINFER_JIT_CACHE_SPEC="${RESPONSE_MODEL_FLASHINFER_JIT_CACHE_SPEC:-flashinfer-jit-cache==0.6.11.post3+cu130}"
 RESPONSE_MODEL_FLASHINFER_JIT_CACHE_INDEX_URL="${RESPONSE_MODEL_FLASHINFER_JIT_CACHE_INDEX_URL:-https://flashinfer.ai/whl/cu130}"
-COSYVOICE_REPO_DIR="${COSYVOICE_REPO_DIR:-${ROOT_DIR}/.vendor/CosyVoice}"
+COSYVOICE_REPO_DIR="${COSYVOICE_REPO_DIR:-${ROOT_DIR}/.models/CosyVoice-runtime}"
 COSYVOICE_REPO_URL="${COSYVOICE_REPO_URL:-https://github.com/FunAudioLLM/CosyVoice.git}"
 COSYVOICE_REPO_REF="${COSYVOICE_REPO_REF:-}"
 COSYVOICE_ONNXRUNTIME_SPEC="${COSYVOICE_ONNXRUNTIME_SPEC:-onnxruntime-gpu==1.21.0}"
@@ -104,10 +104,21 @@ PY
 run_pip() {
   local python_exec="$1"
   shift
-  PIP_NO_INPUT=1 PIP_DISABLE_PIP_VERSION_CHECK=1 "${python_exec}" -m pip "$@"
+  PIP_NO_INPUT=1 PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_PROGRESS_BAR=off "${python_exec}" -m pip "$@"
 }
 
-scrub_stale_torch_uninstall_artifacts() {
+remove_conflicting_runtime_packages() {
+  local python_exec="$1"
+  shift || true
+
+  if [ "$#" -eq 0 ]; then
+    return
+  fi
+
+  run_pip "${python_exec}" uninstall -y "$@" >/dev/null 2>&1 || true
+}
+
+scrub_stale_pip_uninstall_artifacts() {
   local python_exec="$1"
 
   "${python_exec}" - <<'PY'
@@ -117,9 +128,10 @@ from pathlib import Path
 
 
 def should_remove(name: str) -> bool:
-  return name in {"~orch", "~orchgen", "~unctorch"} or (
-    name.startswith("~orch-") and name.endswith(".dist-info")
-  )
+  # Pip leaves invalid placeholder directories like "~ransformers" behind when
+  # an uninstall is interrupted. Those break future resolver runs until they
+  # are removed. Keep the cleanup narrow to obviously-invalid top-level entries.
+  return name.startswith("~")
 
 
 removed = []
@@ -137,7 +149,7 @@ for site_dir in site.getsitepackages():
     removed.append(str(entry))
 
 if removed:
-  print("Removed stale torch uninstall artifacts:")
+  print("Removed stale pip uninstall artifacts:")
   for entry in removed:
     print(f"  {entry}")
 PY
@@ -227,7 +239,7 @@ install_runtime_torch_stack() {
     return
   fi
 
-  scrub_stale_torch_uninstall_artifacts "${python_exec}"
+  scrub_stale_pip_uninstall_artifacts "${python_exec}"
   echo "Preinstalling ${runtime_name} torch stack: ${packages[*]}"
   if [ -n "${index_url}" ]; then
     run_pip "${python_exec}" install --index-url "${index_url}" "${packages[@]}"
@@ -267,9 +279,10 @@ ensure_cosyvoice_checkout() {
 install_cosyvoice_runtime() {
   local python_exec="$1"
   local requirements_file
-  local whisper_spec="openai-whisper==20231117"
+  local whisper_spec="openai-whisper==20250625"
 
   ensure_cosyvoice_checkout
+  remove_conflicting_runtime_packages "${python_exec}" openai-whisper matplotlib
 
   requirements_file="$(mktemp)"
   trap 'rm -f "${requirements_file}"' RETURN
@@ -281,12 +294,21 @@ from pathlib import Path
 source = Path(os.environ["COSYVOICE_REQUIREMENTS_SOURCE"])
 required_packages = {"s3tokenizer", "tiktoken"}
 skipped_packages = {
-    "deepspeed",
+    # These upstream pins are older than the worker/runtime contract and
+    # downgrade the already-provisioned API/vLLM environment when installed
+    # into the shared worker venv.
     "fastapi",
+    "numpy",
+    "protobuf",
+    "pydantic",
+    "rich",
+    "transformers",
+    "deepspeed",
     "fastapi-cli",
     "gradio",
     "grpcio",
     "grpcio-tools",
+    "matplotlib",
     "onnxruntime",
     "onnxruntime-gpu",
     "openai-whisper",
@@ -320,6 +342,7 @@ for package_name in sorted(required_packages - seen):
 PY
   ensure_legacy_pkg_resources "${python_exec}"
   run_pip "${python_exec}" install -r "${requirements_file}"
+  run_pip "${python_exec}" install "matplotlib>=3.10,<4"
   if [ -n "${COSYVOICE_ONNXRUNTIME_SPEC}" ]; then
     run_pip "${python_exec}" install --upgrade "${COSYVOICE_ONNXRUNTIME_SPEC}"
   fi
@@ -368,7 +391,7 @@ for module_name in (
   "modelscope",
   "s3tokenizer",
   "whisper",
-  "voice_pipeline.worker.cosyvoice_surface",
+  "voice_pipeline.gpu.tts_worker.engine",
 ):
     module = importlib.import_module(module_name)
     print(f"{module_name} import verified from {getattr(module, '__file__', 'built-in')}")
@@ -381,13 +404,25 @@ verify_response_model_runtime() {
 import importlib
 import importlib.metadata as md
 
+
+def _print_version(name: str, *, required: bool = True) -> None:
+    try:
+        version = md.version(name)
+    except md.PackageNotFoundError:
+        if required:
+            raise
+        print(f"{name} version: not installed")
+        return
+    print(f"{name} version: {version}")
+
+
 vllm_module = importlib.import_module("vllm")
 flashinfer_module = importlib.import_module("flashinfer")
 print(f"vllm import verified from {getattr(vllm_module, '__file__', 'built-in')}")
 print(f"flashinfer import verified from {getattr(flashinfer_module, '__file__', 'built-in')}")
-print(f"flashinfer-python version: {md.version('flashinfer-python')}")
-print(f"flashinfer-cubin version: {md.version('flashinfer-cubin')}")
-print(f"flashinfer-jit-cache version: {md.version('flashinfer-jit-cache')}")
+_print_version("flashinfer-python")
+_print_version("flashinfer-cubin")
+_print_version("flashinfer-jit-cache", required=False)
 PY
 }
 
@@ -465,6 +500,49 @@ cxx11abi = "TRUE" if torch.compiled_with_cxx11_abi() else "FALSE"
 print(
     f"https://github.com/Dao-AILab/flash-attention/releases/download/v{version}/"
     f"flash_attn-{version}+cu12torch{torch_mm}cxx11abi{cxx11abi}-"
+    f"{python_tag}-{python_tag}-linux_{machine}.whl"
+)
+PY
+}
+
+resolve_flash_attn_community_wheel_url() {
+  local python_exec="$1"
+  local flash_attn_version
+
+  case "${FLASH_ATTN_SPEC}" in
+    flash-attn==*)
+      flash_attn_version="${FLASH_ATTN_SPEC#flash-attn==}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  FLASH_ATTN_VERSION="${flash_attn_version}" "${python_exec}" - <<'PY'
+import os
+import platform
+import sys
+
+import torch
+
+version = os.environ["FLASH_ATTN_VERSION"]
+python_tag = f"cp{sys.version_info.major}{sys.version_info.minor}"
+machine = platform.machine().lower()
+machine = {
+    "amd64": "x86_64",
+    "x86_64": "x86_64",
+}.get(machine, machine)
+torch_version = getattr(torch, "__version__", "").split("+", 1)[0]
+torch_mm = ".".join(torch_version.split(".")[:2])
+cxx11abi = "TRUE" if torch.compiled_with_cxx11_abi() else "FALSE"
+
+if version != "2.8.3" or torch_mm != "2.11" or python_tag not in {"cp310", "cp311", "cp312", "cp313"} or machine != "x86_64":
+    raise SystemExit(1)
+
+print(
+    "https://github.com/lesj0610/flash-attention/releases/download/"
+    f"v{version}-cu12-torch{torch_mm}/"
+    f"flash_attn-{version}%2Bcu12torch{torch_mm}cxx11abi{cxx11abi}-"
     f"{python_tag}-{python_tag}-linux_{machine}.whl"
 )
 PY
@@ -553,6 +631,7 @@ install_flash_attn() {
   local python_exec="$1"
   local runtime_tuple=""
   local auto_wheel_url=""
+  local community_wheel_url=""
 
   if [ "${INSTALL_GPU}" != "1" ]; then
     return
@@ -581,6 +660,7 @@ install_flash_attn() {
 
   runtime_tuple="$(flash_attn_runtime_tuple "${python_exec}" 2>/dev/null || true)"
   auto_wheel_url="$(resolve_flash_attn_auto_wheel_url "${python_exec}" 2>/dev/null || true)"
+  community_wheel_url="$(resolve_flash_attn_community_wheel_url "${python_exec}" 2>/dev/null || true)"
 
   if [ -n "${FLASH_ATTN_WHEEL_URL}" ]; then
     echo "Trying direct wheel URL: ${FLASH_ATTN_WHEEL_URL}"
@@ -597,6 +677,14 @@ install_flash_attn() {
       return
     fi
     echo "No matching auto-detected flash-attn wheel was available for ${runtime_tuple}."
+  fi
+  if [ -n "${community_wheel_url}" ]; then
+    echo "Trying community flash-attn wheel for ${runtime_tuple}: ${community_wheel_url}"
+    if run_pip "${python_exec}" install --no-build-isolation --no-deps "${community_wheel_url}"; then
+      verify_flash_attn "${python_exec}"
+      return
+    fi
+    echo "Community flash-attn wheel install failed for ${runtime_tuple}."
   fi
   if [ -n "${FLASH_ATTN_FIND_LINKS}" ]; then
     if MAX_JOBS="${FLASH_ATTN_MAX_JOBS}" NVCC_THREADS="${FLASH_ATTN_NVCC_THREADS}" \
@@ -719,6 +807,7 @@ if [ "${INSTALL_GPU}" = "1" ] && [ "${SEPARATE_WORKER_VENV}" = "1" ]; then
   ACTIVE_WORKER_PYTHON="${WORKER_VENV_DIR}/bin/python"
 
   install_python_tooling "${ACTIVE_WORKER_PYTHON}"
+  remove_conflicting_runtime_packages "${ACTIVE_WORKER_PYTHON}" openai-whisper matplotlib
   install_runtime_torch_stack \
     "worker" \
     "${ACTIVE_WORKER_PYTHON}" \
@@ -823,13 +912,7 @@ DOWNLOAD_COSYVOICE_REPO="${DOWNLOAD_COSYVOICE_REPO:-1}"
 VOSK_MODEL_NAME="${VOSK_MODEL_NAME:-vosk-model-small-en-us-0.15}"
 VOSK_MODEL_PATH="${VOSK_MODEL_PATH:-${ROOT_DIR}/.models/${VOSK_MODEL_NAME}}"
 VOSK_MODEL_URL="${VOSK_MODEL_URL:-https://alphacephei.com/vosk/models/${VOSK_MODEL_NAME}.zip}"
-
-REFERENCE_AUDIO_PATH="$(${API_PYTHON} - <<'PY'
-from voice_pipeline.config import get_settings
-
-print(get_settings().resolved_tts_reference_audio())
-PY
-)"
+REFERENCE_AUDIO_PATH="${COSYVOICE3_SPEAKER_PATH:-}"
 
 echo "Downloading cached model weights into ${ROOT_DIR}/.models"
 DOWNLOAD_PROVIDER="${MODEL_DOWNLOAD_PROVIDER}" \
@@ -847,7 +930,7 @@ COSYVOICE_REPO_REF="${COSYVOICE_REPO_REF}" \
 bash "${ROOT_DIR}/scripts/download_model_weights.sh"
 
 if [ -n "${REFERENCE_AUDIO_PATH}" ] && [ ! -f "${REFERENCE_AUDIO_PATH}" ]; then
-  COSYVOICE_PROMPT_WAV="${ROOT_DIR}/.vendor/CosyVoice/asset/zero_shot_prompt.wav"
+  COSYVOICE_PROMPT_WAV="${COSYVOICE_REPO_DIR}/asset/zero_shot_prompt.wav"
   if [ -f "${COSYVOICE_PROMPT_WAV}" ]; then
     echo "Copying CosyVoice prompt wav to missing TTS reference path: ${REFERENCE_AUDIO_PATH}"
     mkdir -p "$(dirname "${REFERENCE_AUDIO_PATH}")"
@@ -862,7 +945,7 @@ cat <<EOF
 RunPod stack environment is ready.
 API environment:
   source "${API_VENV_DIR}/bin/activate"
-Worker environment:
+Single-process runtime environment:
   source "${ACTIVE_WORKER_VENV_DIR}/bin/activate"
 ASR environment:
   source "${ACTIVE_WORKER_VENV_DIR}/bin/activate"
@@ -870,10 +953,9 @@ CosyVoice environment:
   source "${ACTIVE_COSYVOICE_VENV_DIR}/bin/activate"
 LLM runtime:
   loaded in-process by the worker from "${ACTIVE_WORKER_VENV_DIR}"
-Start API with:
-  ${ROOT_DIR}/scripts/run_backend.sh
-Start worker with:
-  ${ROOT_DIR}/scripts/run_worker.sh
+Start single-process runtime with:
+  ${ROOT_DIR}/scripts/start_voice_runtime_dev.sh
+  launcher auto-resolves ${WORKER_VENV_HINT_FILE} when present
 Isolation:
   SEPARATE_RESPONSE_MODEL_VENV=${SEPARATE_RESPONSE_MODEL_VENV}
   SEPARATE_WORKER_VENV=${SEPARATE_WORKER_VENV}
@@ -883,7 +965,7 @@ Isolation:
 HTTP UI and API:
   https://<pod-id>-8000.proxy.runpod.net
 Optional Vite dev server:
-  FRONTEND_PORT=5173 ${ROOT_DIR}/scripts/run_frontend.sh
+  cd "${WEB_DIR}" && npm run dev -- --host 0.0.0.0 --port 5173
 clean install:
   CLEAN_INSTALL=${CLEAN_INSTALL}
 python tooling upgrade:

@@ -86,6 +86,41 @@ def test_asr_streaming_emits_partial_then_final_events(monkeypatch, tmp_path: Pa
     assert int(final_events[0].emitted_at_ns) > 0
 
 
+def test_asr_48k_input_10ms_chunks_reach_recognizer_without_resampler_delay(monkeypatch, tmp_path: Path) -> None:
+    model_dir = tmp_path / "vosk-model"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    _install_fake_vosk(
+        monkeypatch,
+        script=(
+            (False, '{"partial": "hello"}'),
+            (True, '{"text": "hello world"}'),
+        ),
+    )
+
+    engine = ASREngine(
+        config=ASRRuntimeConfig(
+            model_path=str(model_dir),
+            sample_rate=16_000,
+            input_sample_rate=48_000,
+        )
+    )
+    engine.warm(strict=True)
+    engine.start_session(lineage_id="asr-session:epoch:1")
+
+    # 10 ms of 48 kHz mono PCM16.
+    frame = b"\x01\x00" * 480
+    partial_events = engine.ingest_audio(frame, lineage_id="asr-session:epoch:1")
+    final_events = engine.ingest_audio(frame, lineage_id="asr-session:epoch:1")
+
+    assert len(partial_events) == 1
+    assert partial_events[0].event_type == "ASRPartialReceived"
+    assert partial_events[0].text == "hello"
+
+    assert len(final_events) == 1
+    assert final_events[0].event_type == "ASRFinalReceived"
+    assert final_events[0].text == "hello world"
+
+
 def test_asr_finalize_reuses_partial_when_final_result_is_empty(monkeypatch, tmp_path: Path) -> None:
     model_dir = tmp_path / "vosk-model"
     model_dir.mkdir(parents=True, exist_ok=True)
@@ -113,3 +148,34 @@ def test_asr_finalize_reuses_partial_when_final_result_is_empty(monkeypatch, tmp
     assert final_event.event_type == "ASRFinalReceived"
     assert final_event.text == "unfinished phrase"
     assert final_event.lineage_id == "asr-session:epoch:1"
+
+
+def test_asr_finalize_does_not_replay_previous_final_on_second_finalize(monkeypatch, tmp_path: Path) -> None:
+    model_dir = tmp_path / "vosk-model"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    _install_fake_vosk(
+        monkeypatch,
+        script=((False, '{"partial": "hello there"}'),),
+        final_result='{"text": ""}',
+    )
+
+    engine = ASREngine(
+        config=ASRRuntimeConfig(
+            model_path=str(model_dir),
+            sample_rate=16_000,
+            input_sample_rate=16_000,
+        )
+    )
+    engine.warm(strict=True)
+    engine.start_session(lineage_id="asr-session:epoch:1")
+
+    frame = b"\x01\x00" * 320
+    _ = engine.ingest_audio(frame, lineage_id="asr-session:epoch:1")
+
+    first_final = engine.finalize(lineage_id="asr-session:epoch:1")
+    second_final = engine.finalize(lineage_id="asr-session:epoch:2")
+
+    assert first_final is not None
+    assert first_final.event_type == "ASRFinalReceived"
+    assert first_final.text == "hello there"
+    assert second_final is None

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_pipeline.runtime.admission_gate import AdmissionError, _require_path
+from voice_pipeline.runtime.admission_gate import AdmissionError, _check_cuda_device, _require_path
 from voice_pipeline.runtime.bootstrap import bootstrap_runtime
 from voice_pipeline.runtime.config import RuntimeConfig
 
@@ -53,6 +53,40 @@ def test_runtime_rejects_live_audio_before_transport_ready(monkeypatch, tmp_path
     assert runtime.model_cache_identity["model_cache_hash"]
     with pytest.raises(RuntimeError, match="runtime_not_ready_for_live_audio"):
         asyncio.run(runtime.process_pcm_frame(b"\x00\x00" * 320))
+
+
+def test_admission_rejects_busy_vllm_device(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "voice_pipeline.runtime.admission_gate._visible_cuda_device_count",
+        lambda: 2,
+    )
+    monkeypatch.setattr(
+        "voice_pipeline.runtime.admission_gate._gpu_inventory",
+        lambda: {
+            0: type("Gpu", (), {"index": 0, "total_memory_mib": 16380, "free_memory_mib": 7, "uuid": "GPU-0"})(),
+            1: type("Gpu", (), {"index": 1, "total_memory_mib": 16380, "free_memory_mib": 12339, "uuid": "GPU-1"})(),
+        },
+    )
+    monkeypatch.setattr(
+        "voice_pipeline.runtime.admission_gate._gpu_compute_processes",
+        lambda: {
+            "GPU-0": (
+                type(
+                    "Proc",
+                    (),
+                    {
+                        "gpu_uuid": "GPU-0",
+                        "pid": 1234,
+                        "process_name": "VLLM::EngineCore",
+                        "used_memory_mib": 15932,
+                    },
+                )(),
+            )
+        },
+    )
+
+    with pytest.raises(AdmissionError, match="vLLM device cuda:0 busy"):
+        _check_cuda_device("vLLM", "cuda:0")
 
 
 def test_runtime_config_removes_non_strict_warmup_toggles() -> None:

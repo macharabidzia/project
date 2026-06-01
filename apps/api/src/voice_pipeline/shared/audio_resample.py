@@ -42,6 +42,14 @@ class StreamingAudioResampler:
 
         if self._stream is not None:
             output = self._stream.resample_chunk(audio, last=False)
+            resolved = np.ascontiguousarray(np.asarray(output, dtype=np.float32).reshape(-1))
+            if resolved.size > 0:
+                return resolved
+            # Some stream backends retain all output for the very first tiny
+            # chunk. Live ASR must still surface 10 ms ingress promptly, so
+            # fall back to direct resampling when the streaming path returns
+            # nothing for non-empty input.
+            output = soxr.resample(audio, int(source_rate), self._target_rate, quality=self._quality)
             return np.ascontiguousarray(np.asarray(output, dtype=np.float32).reshape(-1))
 
         output = soxr.resample(audio, int(source_rate), self._target_rate, quality=self._quality)

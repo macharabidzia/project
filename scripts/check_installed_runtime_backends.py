@@ -9,7 +9,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RUN_DIR = REPO_ROOT / ".run"
 API_SRC = REPO_ROOT / "apps" / "api" / "src"
-COSYVOICE_REPO_DIR = REPO_ROOT / ".vendor" / "CosyVoice"
+COSYVOICE_REPO_DIR = Path(
+    str(os.getenv("COSYVOICE_REPO_DIR", REPO_ROOT / ".models" / "CosyVoice-runtime")).strip()
+).expanduser()
 MATCHA_DIR = COSYVOICE_REPO_DIR / "third_party" / "Matcha-TTS"
 
 
@@ -67,10 +69,10 @@ def _run_import_check(python_path: Path, script: str) -> tuple[int, str]:
             env=env,
             capture_output=True,
             text=True,
-            timeout=10,
+            timeout=30,
         )
     except subprocess.TimeoutExpired:
-        return 124, "import check timed out after 10s"
+        return 124, "import check timed out after 30s"
     output = (completed.stdout + completed.stderr).strip()
     return completed.returncode, output
 

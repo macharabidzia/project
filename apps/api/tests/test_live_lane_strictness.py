@@ -5,7 +5,11 @@ import asyncio
 import pytest
 
 from voice_pipeline.gpu.tts_worker.engine import TTSEngine
-from voice_pipeline.gpu.vllm_worker.engine import VLLMEngine, VLLMEngineConfig
+from voice_pipeline.gpu.vllm_worker.engine import (
+    VLLMEngine,
+    VLLMEngineConfig,
+    _append_spoken_delta,
+)
 from voice_pipeline.stt.asr_engine import ASREngine, ASRRuntimeConfig
 
 
@@ -51,3 +55,10 @@ def test_vllm_stream_tokens_requires_authoritative_request_id() -> None:
 
     with pytest.raises(RuntimeError, match="vllm_request_id_required"):
         asyncio.run(_run())
+
+
+def test_vllm_spoken_delta_preserves_streaming_subword_assembly() -> None:
+    assert _append_spoken_delta("he", "llo") == "hello"
+    assert _append_spoken_delta("hello", " there") == "hello there"
+    assert _append_spoken_delta("what", "'s up?") == "what's up?"
+    assert _append_spoken_delta("hi", "!") == "hi!"

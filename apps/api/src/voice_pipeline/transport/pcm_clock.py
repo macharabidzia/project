@@ -4,6 +4,7 @@ from collections import deque
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 import asyncio
+import inspect
 
 from voice_pipeline.shared.time import now_ns, ns_to_ms
 
@@ -14,6 +15,7 @@ class PCMFrame:
     sample_rate: int
     epoch_id: str
     output_version: int
+    request_id: str = ""
 
 
 class PCMClockSender:
@@ -38,6 +40,12 @@ class PCMClockSender:
     def depth(self) -> int:
         return len(self._frames)
 
+    def head_lease(self) -> tuple[str, int] | None:
+        if not self._frames:
+            return None
+        frame = self._frames[0]
+        return str(frame.epoch_id), int(frame.output_version)
+
     def enqueue(self, frame: PCMFrame) -> bool:
         if len(self._frames) >= self.max_buffer_frames:
             self._frames.popleft()
@@ -47,6 +55,10 @@ class PCMClockSender:
         self._frames.append(frame)
         self._enqueued_ns.append(now_ns())
         return True
+
+    def clear(self) -> None:
+        self._frames.clear()
+        self._enqueued_ns.clear()
 
     def _pop_fresh(self, *, current_epoch_id: str, current_output_version: int) -> PCMFrame | None:
         while self._frames:
@@ -67,19 +79,21 @@ class PCMClockSender:
 
     async def run_once(
         self,
-        send_fn: Callable[[bytes, int], Awaitable[None]],
+        send_fn: Callable[..., Awaitable[None]],
         *,
         current_epoch_id: str,
         current_output_version: int,
         silence_frame: bytes = b"",
         silence_sample_rate: int = 24_000,
-    ) -> None:
+    ) -> str:
         started_ns = now_ns()
         frame = self._pop_fresh(current_epoch_id=str(current_epoch_id), current_output_version=int(current_output_version))
         if frame is None:
-            await send_fn(bytes(silence_frame), int(silence_sample_rate))
+            await _call_send_fn(send_fn, bytes(silence_frame), int(silence_sample_rate), "")
+            sent_request_id = ""
         else:
-            await send_fn(bytes(frame.pcm), int(frame.sample_rate))
+            await _call_send_fn(send_fn, bytes(frame.pcm), int(frame.sample_rate), str(frame.request_id))
+            sent_request_id = str(frame.request_id)
 
         elapsed_ns = now_ns() - started_ns
         remaining_ns = self.tick_ns - elapsed_ns
@@ -88,6 +102,23 @@ class PCMClockSender:
         total_ns = now_ns() - started_ns
         self.last_tick_elapsed_ms = ns_to_ms(total_ns)
         self.last_tick_jitter_ms = abs(self.last_tick_elapsed_ms - (float(self.tick_ns) / 1_000_000.0))
+        return sent_request_id
+
+
+async def _call_send_fn(
+    send_fn: Callable[..., Awaitable[None]],
+    pcm: bytes,
+    sample_rate: int,
+    request_id: str,
+) -> None:
+    try:
+        parameter_count = len(inspect.signature(send_fn).parameters)
+    except (TypeError, ValueError):
+        parameter_count = 3
+    if parameter_count <= 2:
+        await send_fn(pcm, sample_rate)
+        return
+    await send_fn(pcm, sample_rate, request_id)
 
 
 __all__ = ["PCMClockSender", "PCMFrame"]

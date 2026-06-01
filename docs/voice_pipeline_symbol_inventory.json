@@ -262,77 +262,251 @@
       {
         "name": "CosyVoiceBiStreamSession",
         "doc": "",
-        "lineno": 14,
+        "lineno": 21,
         "methods": []
       },
       {
         "name": "TTSEngine",
         "doc": "",
-        "lineno": 21,
+        "lineno": 31,
         "methods": [
           {
             "name": "__init__",
             "kind": "method",
             "doc": "",
-            "lineno": 22
+            "lineno": 32
           },
           {
             "name": "is_warm",
             "kind": "method",
             "doc": "",
-            "lineno": 48
+            "lineno": 76
           },
           {
             "name": "warm",
             "kind": "method",
             "doc": "",
-            "lineno": 51
+            "lineno": 79
           },
           {
             "name": "start_persistent_session",
             "kind": "method",
             "doc": "",
-            "lineno": 72
+            "lineno": 116
           },
           {
             "name": "reset",
             "kind": "method",
             "doc": "",
-            "lineno": 83
+            "lineno": 137
+          },
+          {
+            "name": "cancel",
+            "kind": "method",
+            "doc": "",
+            "lineno": 147
+          },
+          {
+            "name": "debug_metrics",
+            "kind": "method",
+            "doc": "",
+            "lineno": 155
+          },
+          {
+            "name": "_record_generator_fragment",
+            "kind": "method",
+            "doc": "",
+            "lineno": 163
           },
           {
             "name": "stream_pcm",
             "kind": "async_method",
             "doc": "",
-            "lineno": 87
+            "lineno": 173
+          },
+          {
+            "name": "_stream_generator_pcm_threaded",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 293
+          },
+          {
+            "name": "_should_drop_resumed_tail",
+            "kind": "method",
+            "doc": "",
+            "lineno": 387
           }
         ]
       }
     ],
     "functions": [
       {
-        "name": "_iter_fragments",
+        "name": "_pcm_bytes_rms_peak",
         "kind": "function",
         "doc": "",
-        "lineno": 145
+        "lineno": 416
+      },
+      {
+        "name": "_normalize_fragment",
+        "kind": "function",
+        "doc": "",
+        "lineno": 428
+      },
+      {
+        "name": "_iter_fragments_with_last",
+        "kind": "async_function",
+        "doc": "",
+        "lineno": 432
+      },
+      {
+        "name": "_iter_text_tokens",
+        "kind": "function",
+        "doc": "",
+        "lineno": 464
+      },
+      {
+        "name": "_resolve_native_stream_emit_thresholds",
+        "kind": "function",
+        "doc": "",
+        "lineno": 473
+      },
+      {
+        "name": "_resolve_native_max_prompt_speech_tokens",
+        "kind": "function",
+        "doc": "",
+        "lineno": 490
+      },
+      {
+        "name": "_resolve_native_oneshot_max_tokens",
+        "kind": "function",
+        "doc": "",
+        "lineno": 508
+      },
+      {
+        "name": "_force_zero_shot_native_stream",
+        "kind": "function",
+        "doc": "",
+        "lineno": 518
+      },
+      {
+        "name": "_ensure_endofprompt",
+        "kind": "function",
+        "doc": "",
+        "lineno": 523
       },
       {
         "name": "_resolve_native_stream_inference",
         "kind": "function",
         "doc": "",
-        "lineno": 157
+        "lineno": 534
       },
       {
         "name": "_call_cosyvoice_native_stream",
         "kind": "function",
         "doc": "",
-        "lineno": 164
+        "lineno": 546
+      },
+      {
+        "name": "_call_cosyvoice_native_once",
+        "kind": "function",
+        "doc": "",
+        "lineno": 673
+      },
+      {
+        "name": "_prime_native_prompt_cache",
+        "kind": "function",
+        "doc": "",
+        "lineno": 763
+      },
+      {
+        "name": "_trim_native_prompt_kwargs",
+        "kind": "function",
+        "doc": "",
+        "lineno": 820
+      },
+      {
+        "name": "_ends_sentence",
+        "kind": "function",
+        "doc": "",
+        "lineno": 887
+      },
+      {
+        "name": "_token_count",
+        "kind": "function",
+        "doc": "",
+        "lineno": 891
+      },
+      {
+        "name": "_strip_followup_metadata_tail",
+        "kind": "function",
+        "doc": "",
+        "lineno": 896
+      },
+      {
+        "name": "_streaming_text_fragments",
+        "kind": "function",
+        "doc": "",
+        "lineno": 905
+      },
+      {
+        "name": "_contains_cjk",
+        "kind": "function",
+        "doc": "",
+        "lineno": 981
+      },
+      {
+        "name": "_latin_ratio",
+        "kind": "function",
+        "doc": "",
+        "lineno": 985
+      },
+      {
+        "name": "_should_use_cross_lingual_mode",
+        "kind": "function",
+        "doc": "",
+        "lineno": 994
+      },
+      {
+        "name": "_ensure_english_lang_tag",
+        "kind": "function",
+        "doc": "",
+        "lineno": 1009
       },
       {
         "name": "_tts_speech_to_pcm_bytes",
         "kind": "function",
         "doc": "",
-        "lineno": 185
+        "lineno": 1018
+      },
+      {
+        "name": "_prepend_sys_path",
+        "kind": "function",
+        "doc": "",
+        "lineno": 1035
+      },
+      {
+        "name": "_candidate_cosyvoice_roots",
+        "kind": "function",
+        "doc": "",
+        "lineno": 1044
+      },
+      {
+        "name": "_ensure_cosyvoice_runtime_paths",
+        "kind": "function",
+        "doc": "",
+        "lineno": 1064
+      },
+      {
+        "name": "_assert_cuda_device_binding",
+        "kind": "function",
+        "doc": "",
+        "lineno": 1074
+      },
+      {
+        "name": "_cuda_device_context",
+        "kind": "function",
+        "doc": "",
+        "lineno": 1096
       }
     ]
   },
@@ -375,68 +549,86 @@
       {
         "name": "VLLMEngineConfig",
         "doc": "",
-        "lineno": 10,
+        "lineno": 13,
         "methods": []
       },
       {
         "name": "PrefixCacheStats",
         "doc": "",
-        "lineno": 31,
+        "lineno": 52,
         "methods": [
           {
             "name": "hit_ratio",
             "kind": "method",
             "doc": "",
-            "lineno": 36
+            "lineno": 57
           }
         ]
       },
       {
         "name": "VLLMEngine",
         "doc": "GPU0 streaming token runtime backed by vLLM when available.",
-        "lineno": 52,
+        "lineno": 73,
         "methods": [
           {
             "name": "__init__",
             "kind": "method",
             "doc": "",
-            "lineno": 55
+            "lineno": 76
           },
           {
             "name": "is_warm",
             "kind": "method",
             "doc": "",
-            "lineno": 67
+            "lineno": 90
           },
           {
             "name": "prefix_cache_ready",
             "kind": "method",
             "doc": "",
-            "lineno": 71
+            "lineno": 94
           },
           {
             "name": "prewarm_prefix_cache",
             "kind": "method",
             "doc": "",
-            "lineno": 74
+            "lineno": 97
           },
           {
             "name": "warm",
             "kind": "method",
             "doc": "",
-            "lineno": 82
+            "lineno": 105
+          },
+          {
+            "name": "_maybe_load_tokenizer",
+            "kind": "method",
+            "doc": "",
+            "lineno": 198
           },
           {
             "name": "cache_stats",
             "kind": "method",
             "doc": "",
-            "lineno": 123
+            "lineno": 219
+          },
+          {
+            "name": "cancel_request",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 222
+          },
+          {
+            "name": "render_prompt",
+            "kind": "method",
+            "doc": "",
+            "lineno": 235
           },
           {
             "name": "stream_tokens",
             "kind": "async_method",
             "doc": "",
-            "lineno": 126
+            "lineno": 273
           }
         ]
       }
@@ -446,7 +638,43 @@
         "name": "build_prompt_cache_key",
         "kind": "function",
         "doc": "",
-        "lineno": 43
+        "lineno": 64
+      },
+      {
+        "name": "_assert_cuda_device_binding",
+        "kind": "function",
+        "doc": "",
+        "lineno": 343
+      },
+      {
+        "name": "_strip_reasoning_sections",
+        "kind": "function",
+        "doc": "",
+        "lineno": 355
+      },
+      {
+        "name": "_normalize_spoken_output",
+        "kind": "function",
+        "doc": "",
+        "lineno": 382
+      },
+      {
+        "name": "_append_spoken_delta",
+        "kind": "function",
+        "doc": "",
+        "lineno": 394
+      },
+      {
+        "name": "_split_flushable_spoken_prefix",
+        "kind": "function",
+        "doc": "",
+        "lineno": 404
+      },
+      {
+        "name": "_cuda_device_context",
+        "kind": "function",
+        "doc": "",
+        "lineno": 435
       }
     ]
   },
@@ -505,6 +733,24 @@
         "kind": "function",
         "doc": "",
         "lineno": 43
+      },
+      {
+        "name": "build_tts_append_command",
+        "kind": "function",
+        "doc": "",
+        "lineno": 71
+      },
+      {
+        "name": "build_vllm_cancel_command",
+        "kind": "function",
+        "doc": "",
+        "lineno": 97
+      },
+      {
+        "name": "build_tts_cancel_command",
+        "kind": "function",
+        "doc": "",
+        "lineno": 118
       }
     ]
   },
@@ -559,152 +805,158 @@
             "name": "reducer_config",
             "kind": "method",
             "doc": "",
-            "lineno": 35
+            "lineno": 36
           }
         ]
       },
       {
         "name": "KernelCommitResult",
         "doc": "",
-        "lineno": 48,
+        "lineno": 50,
         "methods": []
       },
       {
         "name": "KernelRuntime",
         "doc": "",
-        "lineno": 55,
+        "lineno": 57,
         "methods": [
           {
             "name": "__init__",
             "kind": "method",
             "doc": "",
-            "lineno": 56
+            "lineno": 58
           },
           {
             "name": "topology",
             "kind": "method",
             "doc": "",
-            "lineno": 84
+            "lineno": 86
           },
           {
             "name": "rings",
             "kind": "method",
             "doc": "",
-            "lineno": 88
+            "lineno": 90
           },
           {
             "name": "state",
             "kind": "method",
             "doc": "",
-            "lineno": 92
+            "lineno": 94
           },
           {
             "name": "event_log",
             "kind": "method",
             "doc": "",
-            "lineno": 96
+            "lineno": 98
           },
           {
             "name": "queued_event_count",
             "kind": "method",
             "doc": "",
-            "lineno": 100
+            "lineno": 102
           },
           {
             "name": "next_sequence_no",
             "kind": "method",
             "doc": "",
-            "lineno": 103
+            "lineno": 105
           },
           {
             "name": "current_lease",
             "kind": "method",
             "doc": "",
-            "lineno": 106
+            "lineno": 108
+          },
+          {
+            "name": "reset",
+            "kind": "method",
+            "doc": "",
+            "lineno": 111
           },
           {
             "name": "_commit_transition",
             "kind": "method",
             "doc": "",
-            "lineno": 109
+            "lineno": 123
           },
           {
             "name": "apply_event",
             "kind": "method",
             "doc": "",
-            "lineno": 113
+            "lineno": 127
           },
           {
             "name": "replay",
             "kind": "method",
             "doc": "",
-            "lineno": 169
+            "lineno": 183
           },
           {
             "name": "enqueue_event",
             "kind": "method",
             "doc": "",
-            "lineno": 175
+            "lineno": 189
           },
           {
             "name": "tick",
             "kind": "method",
             "doc": "",
-            "lineno": 187
+            "lineno": 201
           },
           {
             "name": "_is_protected_event_type",
             "kind": "method",
             "doc": "",
-            "lineno": 236
+            "lineno": 250
           },
           {
             "name": "_event_priority",
             "kind": "method",
             "doc": "",
-            "lineno": 240
+            "lineno": 254
           },
           {
             "name": "_drop_superseded_partial_events",
             "kind": "method",
             "doc": "",
-            "lineno": 254
+            "lineno": 268
           },
           {
             "name": "_evict_low_priority_for_protected_event",
             "kind": "method",
             "doc": "",
-            "lineno": 269
+            "lineno": 283
           },
           {
             "name": "_pop_next_queued_event",
             "kind": "method",
             "doc": "",
-            "lineno": 283
+            "lineno": 297
           },
           {
             "name": "_with_sequence_no",
             "kind": "method",
             "doc": "",
-            "lineno": 300
+            "lineno": 314
           },
           {
             "name": "_is_suppressible_stale_engine_output",
             "kind": "method",
             "doc": "",
-            "lineno": 314
+            "lineno": 328
           },
           {
             "name": "commit_tick",
             "kind": "method",
             "doc": "",
-            "lineno": 327
+            "lineno": 341
           },
           {
             "name": "runtime_metrics",
             "kind": "method",
             "doc": "",
-            "lineno": 332
+            "lineno": 346
           }
         ]
       }
@@ -865,38 +1117,38 @@
             "name": "request_started_ns",
             "kind": "method",
             "doc": "",
-            "lineno": 36
+            "lineno": 38
           },
           {
             "name": "mark_request_started",
             "kind": "method",
             "doc": "",
-            "lineno": 43
+            "lineno": 45
           },
           {
             "name": "has_seen_first_token",
             "kind": "method",
             "doc": "",
-            "lineno": 50
+            "lineno": 52
           },
           {
             "name": "mark_first_token_seen",
             "kind": "method",
             "doc": "",
-            "lineno": 53
+            "lineno": 55
           }
         ]
       },
       {
         "name": "ReducerConfig",
         "doc": "",
-        "lineno": 61,
+        "lineno": 63,
         "methods": []
       },
       {
         "name": "ReducerTransition",
         "doc": "",
-        "lineno": 72,
+        "lineno": 75,
         "methods": []
       }
     ],
@@ -905,31 +1157,103 @@
         "name": "_normalized_text",
         "kind": "function",
         "doc": "",
-        "lineno": 79
+        "lineno": 82
+      },
+      {
+        "name": "_join_spoken_tokens",
+        "kind": "function",
+        "doc": "",
+        "lineno": 90
+      },
+      {
+        "name": "_should_insert_spoken_boundary_space",
+        "kind": "function",
+        "doc": "",
+        "lineno": 103
+      },
+      {
+        "name": "_should_close_first_stream_immediately",
+        "kind": "function",
+        "doc": "",
+        "lineno": 117
       },
       {
         "name": "_is_interrupt_replay",
         "kind": "function",
         "doc": "",
-        "lineno": 83
+        "lineno": 128
       },
       {
         "name": "_apply_event_meta",
         "kind": "function",
         "doc": "",
-        "lineno": 87
+        "lineno": 132
+      },
+      {
+        "name": "_active_tts_request_for_current_output",
+        "kind": "function",
+        "doc": "",
+        "lineno": 140
+      },
+      {
+        "name": "_final_confirms_current_turn",
+        "kind": "function",
+        "doc": "",
+        "lineno": 149
+      },
+      {
+        "name": "_text_extends_current_turn",
+        "kind": "function",
+        "doc": "",
+        "lineno": 162
+      },
+      {
+        "name": "_text_extends_completed_turn",
+        "kind": "function",
+        "doc": "",
+        "lineno": 180
+      },
+      {
+        "name": "_completed_turn_is_single_greeting",
+        "kind": "function",
+        "doc": "",
+        "lineno": 200
+      },
+      {
+        "name": "_should_ignore_completed_turn_short_tail",
+        "kind": "function",
+        "doc": "",
+        "lineno": 207
+      },
+      {
+        "name": "_should_ignore_completed_greeting_extension",
+        "kind": "function",
+        "doc": "",
+        "lineno": 234
+      },
+      {
+        "name": "_should_commit_greeting_partial",
+        "kind": "function",
+        "doc": "",
+        "lineno": 245
+      },
+      {
+        "name": "_current_turn_is_single_greeting",
+        "kind": "function",
+        "doc": "",
+        "lineno": 258
       },
       {
         "name": "validate_engine_output",
         "kind": "function",
         "doc": "",
-        "lineno": 95
+        "lineno": 265
       },
       {
         "name": "reduce_event",
         "kind": "function",
         "doc": "",
-        "lineno": 117
+        "lineno": 287
       }
     ]
   },
@@ -1066,19 +1390,19 @@
       {
         "name": "TTSFragmentPlannerConfig",
         "doc": "",
-        "lineno": 23,
+        "lineno": 101,
         "methods": []
       },
       {
         "name": "TTSFragmentPlan",
         "doc": "",
-        "lineno": 31,
+        "lineno": 110,
         "methods": [
           {
             "name": "flush_text",
             "kind": "method",
             "doc": "",
-            "lineno": 39
+            "lineno": 118
           }
         ]
       }
@@ -1088,25 +1412,73 @@
         "name": "_normalize_text",
         "kind": "function",
         "doc": "",
-        "lineno": 10
+        "lineno": 52
       },
       {
         "name": "_normalize_tokens",
         "kind": "function",
         "doc": "",
-        "lineno": 14
+        "lineno": 56
       },
       {
         "name": "_token_has_boundary",
         "kind": "function",
         "doc": "",
-        "lineno": 18
+        "lineno": 60
+      },
+      {
+        "name": "_token_is_punctuation_only",
+        "kind": "function",
+        "doc": "",
+        "lineno": 64
+      },
+      {
+        "name": "_token_is_contraction_suffix",
+        "kind": "function",
+        "doc": "",
+        "lineno": 68
+      },
+      {
+        "name": "_token_is_dangling_function_word",
+        "kind": "function",
+        "doc": "",
+        "lineno": 72
+      },
+      {
+        "name": "_has_internal_boundary",
+        "kind": "function",
+        "doc": "",
+        "lineno": 76
+      },
+      {
+        "name": "_lexical_token_count",
+        "kind": "function",
+        "doc": "",
+        "lineno": 82
+      },
+      {
+        "name": "_is_complete_short_clause",
+        "kind": "function",
+        "doc": "",
+        "lineno": 86
+      },
+      {
+        "name": "_is_boundaryless_lexical_prefix",
+        "kind": "function",
+        "doc": "",
+        "lineno": 90
+      },
+      {
+        "name": "_should_keep_stream_open",
+        "kind": "function",
+        "doc": "",
+        "lineno": 94
       },
       {
         "name": "plan_tts_fragment",
         "kind": "function",
         "doc": "",
-        "lineno": 43
+        "lineno": 122
       }
     ]
   },
@@ -1328,13 +1700,13 @@
       {
         "name": "AdmissionError",
         "doc": "",
-        "lineno": 12,
+        "lineno": 13,
         "methods": []
       },
       {
         "name": "AdmissionConfig",
         "doc": "",
-        "lineno": 17,
+        "lineno": 18,
         "methods": []
       }
     ],
@@ -1343,49 +1715,109 @@
         "name": "_cpu_flags",
         "kind": "function",
         "doc": "",
-        "lineno": 23
+        "lineno": 35
       },
       {
         "name": "_check_avx2",
         "kind": "function",
         "doc": "",
-        "lineno": 33
+        "lineno": 45
       },
       {
         "name": "_check_clock",
         "kind": "function",
         "doc": "",
-        "lineno": 40
+        "lineno": 52
       },
       {
         "name": "_check_socket_limits",
         "kind": "function",
         "doc": "",
-        "lineno": 54
+        "lineno": 66
+      },
+      {
+        "name": "_check_forbidden_distributed_env",
+        "kind": "function",
+        "doc": "",
+        "lineno": 72
       },
       {
         "name": "_require_path",
         "kind": "function",
         "doc": "",
-        "lineno": 60
+        "lineno": 81
       },
       {
         "name": "_require_cache_dir",
         "kind": "function",
         "doc": "",
-        "lineno": 70
+        "lineno": 91
+      },
+      {
+        "name": "_require_value",
+        "kind": "function",
+        "doc": "",
+        "lineno": 101
+      },
+      {
+        "name": "_require_file",
+        "kind": "function",
+        "doc": "",
+        "lineno": 107
+      },
+      {
+        "name": "_require_any_glob",
+        "kind": "function",
+        "doc": "",
+        "lineno": 112
+      },
+      {
+        "name": "_check_vosk_artifacts",
+        "kind": "function",
+        "doc": "",
+        "lineno": 119
+      },
+      {
+        "name": "_check_vllm_artifacts",
+        "kind": "function",
+        "doc": "",
+        "lineno": 130
+      },
+      {
+        "name": "_check_cosyvoice3_artifacts",
+        "kind": "function",
+        "doc": "",
+        "lineno": 150
+      },
+      {
+        "name": "_check_optional_speaker_asset",
+        "kind": "function",
+        "doc": "",
+        "lineno": 158
       },
       {
         "name": "_check_cuda_device",
         "kind": "function",
         "doc": "",
-        "lineno": 80
+        "lineno": 167
+      },
+      {
+        "name": "_visible_cuda_device_count",
+        "kind": "function",
+        "doc": "",
+        "lineno": 176
+      },
+      {
+        "name": "_check_livekit_config",
+        "kind": "function",
+        "doc": "",
+        "lineno": 199
       },
       {
         "name": "hardware_admission_check",
         "kind": "function",
         "doc": "",
-        "lineno": 97
+        "lineno": 210
       }
     ]
   },
@@ -1396,263 +1828,630 @@
       {
         "name": "WarmReport",
         "doc": "",
-        "lineno": 37,
+        "lineno": 51,
         "methods": []
       },
       {
         "name": "WorkerStatus",
         "doc": "",
-        "lineno": 44,
+        "lineno": 58,
+        "methods": []
+      },
+      {
+        "name": "WorkerFailureReason",
+        "doc": "",
+        "lineno": 67,
         "methods": []
       },
       {
         "name": "TopologyReport",
         "doc": "",
-        "lineno": 53,
+        "lineno": 76,
         "methods": []
       },
       {
-        "name": "VoicePipelineRuntime",
+        "name": "_BlockingTextStream",
         "doc": "",
-        "lineno": 61,
+        "lineno": 83,
         "methods": [
           {
-            "name": "__post_init__",
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 86
+          },
+          {
+            "name": "push",
+            "kind": "method",
+            "doc": "",
+            "lineno": 89
+          },
+          {
+            "name": "close",
             "kind": "method",
             "doc": "",
             "lineno": 96
           },
           {
+            "name": "generator",
+            "kind": "method",
+            "doc": "",
+            "lineno": 99
+          }
+        ]
+      },
+      {
+        "name": "_ActiveTTSStreamSession",
+        "doc": "",
+        "lineno": 161,
+        "methods": []
+      },
+      {
+        "name": "_SpeculativeVLLMRequest",
+        "doc": "",
+        "lineno": 174,
+        "methods": []
+      },
+      {
+        "name": "_PreparedTTSFrame",
+        "doc": "",
+        "lineno": 187,
+        "methods": []
+      },
+      {
+        "name": "_SpeculativeTTSRequest",
+        "doc": "",
+        "lineno": 199,
+        "methods": []
+      },
+      {
+        "name": "VoicePipelineRuntime",
+        "doc": "",
+        "lineno": 219,
+        "methods": [
+          {
+            "name": "__post_init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 298
+          },
+          {
             "name": "global_ready",
             "kind": "method",
             "doc": "",
-            "lineno": 101
+            "lineno": 303
           },
           {
             "name": "assert_ready_for_live_audio",
             "kind": "method",
             "doc": "",
-            "lineno": 110
+            "lineno": 312
           },
           {
             "name": "tick",
             "kind": "method",
             "doc": "",
-            "lineno": 114
+            "lineno": 316
           },
           {
             "name": "topology_report",
             "kind": "method",
             "doc": "",
-            "lineno": 117
+            "lineno": 319
           },
           {
             "name": "dry_run_report",
             "kind": "method",
             "doc": "",
-            "lineno": 120
+            "lineno": 322
           },
           {
             "name": "next_sequence_no",
             "kind": "method",
             "doc": "",
-            "lineno": 124
+            "lineno": 326
+          },
+          {
+            "name": "reset_session_state",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 329
+          },
+          {
+            "name": "_stable_session_summary",
+            "kind": "method",
+            "doc": "",
+            "lineno": 408
+          },
+          {
+            "name": "_cancel_speculative_vllm",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 418
+          },
+          {
+            "name": "_cancel_speculative_tts",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 431
+          },
+          {
+            "name": "_run_speculative_vllm_request",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 449
+          },
+          {
+            "name": "_start_speculative_tts_for_text",
+            "kind": "method",
+            "doc": "",
+            "lineno": 466
+          },
+          {
+            "name": "_run_speculative_tts_request",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 487
+          },
+          {
+            "name": "_ensure_speculative_tts_drain_task",
+            "kind": "method",
+            "doc": "",
+            "lineno": 579
+          },
+          {
+            "name": "_drain_promoted_speculative_tts",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 587
+          },
+          {
+            "name": "_promote_speculative_tts_request",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 654
+          },
+          {
+            "name": "_maybe_prewarm_vllm_stable_prefix",
+            "kind": "method",
+            "doc": "",
+            "lineno": 679
+          },
+          {
+            "name": "warm_vllm_runtime_probe",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 739
+          },
+          {
+            "name": "_warm_tts_generator_runtime_probe",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 776
+          },
+          {
+            "name": "warm_tts_runtime_probe",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 823
           },
           {
             "name": "start",
             "kind": "async_method",
             "doc": "",
-            "lineno": 127
+            "lineno": 882
           },
           {
             "name": "stop",
             "kind": "async_method",
             "doc": "",
-            "lineno": 134
+            "lineno": 888
           },
           {
             "name": "run_forever",
             "kind": "async_method",
             "doc": "",
-            "lineno": 146
+            "lineno": 900
           },
           {
             "name": "_tick_loop",
             "kind": "async_method",
             "doc": "",
-            "lineno": 151
+            "lineno": 905
           },
           {
             "name": "_record_latency",
             "kind": "method",
             "doc": "",
-            "lineno": 161
+            "lineno": 915
+          },
+          {
+            "name": "_pcm_bytes_rms_peak",
+            "kind": "method",
+            "doc": "",
+            "lineno": 919
+          },
+          {
+            "name": "_update_tts_signal_metrics",
+            "kind": "method",
+            "doc": "",
+            "lineno": 930
+          },
+          {
+            "name": "_start_tts_request_metrics",
+            "kind": "method",
+            "doc": "",
+            "lineno": 947
+          },
+          {
+            "name": "_record_tts_chunk_trace",
+            "kind": "method",
+            "doc": "",
+            "lineno": 977
+          },
+          {
+            "name": "_trace_relative_ms",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1016
+          },
+          {
+            "name": "_record_ingress_frame_trace",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1021
+          },
+          {
+            "name": "_record_asr_event_trace",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1033
+          },
+          {
+            "name": "note_vad_speech_start",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1045
+          },
+          {
+            "name": "_completed_greeting_tail_suffix",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1051
+          },
+          {
+            "name": "_should_suppress_stale_greeting_asr_extension",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1078
+          },
+          {
+            "name": "_should_emit_tts_frame",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1120
+          },
+          {
+            "name": "_record_trimmed_tts_frame",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1137
+          },
+          {
+            "name": "_batch_opens_tts_leading_gate",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1143
+          },
+          {
+            "name": "_tts_leading_batch_start_index",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1178
+          },
+          {
+            "name": "_should_drop_final_tts_resampler_tail",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1273
           },
           {
             "name": "_authority_event",
             "kind": "method",
             "doc": "",
-            "lineno": 164
+            "lineno": 1299
           },
           {
             "name": "_append_event",
             "kind": "method",
             "doc": "",
-            "lineno": 188
+            "lineno": 1323
           },
           {
             "name": "_asr_events_to_authority",
             "kind": "method",
             "doc": "",
-            "lineno": 200
+            "lineno": 1336
+          },
+          {
+            "name": "_filter_stale_asr_events",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1361
+          },
+          {
+            "name": "_encode_slot_payload",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1370
+          },
+          {
+            "name": "_push_lane_slot",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1373
+          },
+          {
+            "name": "_mirror_authority_event_to_ring",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1407
+          },
+          {
+            "name": "_mirror_dispatch_command_to_ring",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1438
+          },
+          {
+            "name": "_mirror_pcm_frame_to_ring",
+            "kind": "method",
+            "doc": "",
+            "lineno": 1471
           },
           {
             "name": "process_pcm_frame",
             "kind": "async_method",
             "doc": "",
-            "lineno": 217
+            "lineno": 1485
+          },
+          {
+            "name": "finalize_asr_turn",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 1506
           },
           {
             "name": "_tick_and_stamp_commands",
             "kind": "async_method",
             "doc": "",
-            "lineno": 239
+            "lineno": 1521
           },
           {
             "name": "_dispatch_commands",
             "kind": "async_method",
             "doc": "",
-            "lineno": 258
+            "lineno": 1587
           },
           {
             "name": "run_tick_and_dispatch",
             "kind": "async_method",
             "doc": "",
-            "lineno": 284
+            "lineno": 1621
+          },
+          {
+            "name": "_execute_vllm_cancel_command",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 1629
+          },
+          {
+            "name": "_execute_tts_cancel_command",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 1650
           },
           {
             "name": "_execute_vllm_command",
             "kind": "async_method",
             "doc": "",
-            "lineno": 292
+            "lineno": 1688
           },
           {
             "name": "_execute_tts_command",
             "kind": "async_method",
             "doc": "",
-            "lineno": 380
+            "lineno": 1856
+          },
+          {
+            "name": "_execute_tts_append_command",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 2099
+          },
+          {
+            "name": "_run_tts_stream_session",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 2120
+          },
+          {
+            "name": "_reset_output_resampler",
+            "kind": "method",
+            "doc": "",
+            "lineno": 2289
           },
           {
             "name": "_resample_output",
             "kind": "method",
             "doc": "",
-            "lineno": 478
+            "lineno": 2294
+          },
+          {
+            "name": "_output_frame_bytes",
+            "kind": "method",
+            "doc": "",
+            "lineno": 2319
+          },
+          {
+            "name": "_chunk_output_pcm",
+            "kind": "method",
+            "doc": "",
+            "lineno": 2323
           },
           {
             "name": "send_pcm_once",
             "kind": "async_method",
             "doc": "",
-            "lineno": 486
+            "lineno": 2350
           },
           {
             "name": "latency_summary",
             "kind": "method",
             "doc": "",
-            "lineno": 499
+            "lineno": 2371
           },
           {
             "name": "replay_state_hash",
             "kind": "method",
             "doc": "",
-            "lineno": 502
+            "lineno": 2374
           },
           {
             "name": "replay_event_hash",
             "kind": "method",
             "doc": "",
-            "lineno": 505
+            "lineno": 2377
           },
           {
             "name": "last_timestamps",
             "kind": "method",
             "doc": "",
-            "lineno": 508
+            "lineno": 2380
+          },
+          {
+            "name": "tts_signal_metrics",
+            "kind": "method",
+            "doc": "",
+            "lineno": 2383
+          },
+          {
+            "name": "ingress_frame_trace",
+            "kind": "method",
+            "doc": "",
+            "lineno": 2386
+          },
+          {
+            "name": "asr_event_trace",
+            "kind": "method",
+            "doc": "",
+            "lineno": 2389
           },
           {
             "name": "recovery_snapshot",
             "kind": "method",
             "doc": "",
-            "lineno": 511
+            "lineno": 2392
           }
         ]
       }
     ],
     "functions": [
       {
+        "name": "_single_fragment_generator",
+        "kind": "function",
+        "doc": "",
+        "lineno": 107
+      },
+      {
+        "name": "_token_fragment_generator",
+        "kind": "function",
+        "doc": "",
+        "lineno": 113
+      },
+      {
+        "name": "_push_tokenized_text",
+        "kind": "function",
+        "doc": "",
+        "lineno": 122
+      },
+      {
+        "name": "_join_spoken_tokens",
+        "kind": "function",
+        "doc": "",
+        "lineno": 133
+      },
+      {
+        "name": "_should_insert_spoken_boundary_space",
+        "kind": "function",
+        "doc": "",
+        "lineno": 146
+      },
+      {
         "name": "_bind_cuda_device",
         "kind": "function",
         "doc": "",
-        "lineno": 514
+        "lineno": 2395
       },
       {
         "name": "_assert_contract",
         "kind": "function",
         "doc": "",
-        "lineno": 528
+        "lineno": 2409
       },
       {
         "name": "_identity_hash",
         "kind": "function",
         "doc": "",
-        "lineno": 539
+        "lineno": 2420
       },
       {
         "name": "_build_model_cache_identity",
         "kind": "function",
         "doc": "",
-        "lineno": 544
+        "lineno": 2425
       },
       {
         "name": "_build_topology",
         "kind": "function",
         "doc": "",
-        "lineno": 567
+        "lineno": 2448
       },
       {
         "name": "_build_kernel",
         "kind": "function",
         "doc": "",
-        "lineno": 576
+        "lineno": 2457
       },
       {
         "name": "_warm_asr_engine",
         "kind": "function",
         "doc": "",
-        "lineno": 597
+        "lineno": 2481
       },
       {
         "name": "_run_async_probe",
         "kind": "function",
         "doc": "",
-        "lineno": 605
+        "lineno": 2492
       },
       {
         "name": "_warm_vllm_engine",
         "kind": "function",
         "doc": "",
-        "lineno": 623
+        "lineno": 2517
       },
       {
         "name": "_warm_tts_engine",
         "kind": "function",
         "doc": "",
-        "lineno": 643
+        "lineno": 2538
       },
       {
         "name": "bootstrap_runtime",
         "kind": "function",
         "doc": "",
-        "lineno": 663
+        "lineno": 2576
       }
     ]
   },
@@ -1662,16 +2461,52 @@
     "classes": [],
     "functions": [
       {
+        "name": "_repo_root",
+        "kind": "function",
+        "doc": "",
+        "lineno": 14
+      },
+      {
+        "name": "_default_env_file",
+        "kind": "function",
+        "doc": "",
+        "lineno": 18
+      },
+      {
+        "name": "_configure_runtime_env",
+        "kind": "function",
+        "doc": "",
+        "lineno": 22
+      },
+      {
+        "name": "_configure_cuda_library_path",
+        "kind": "function",
+        "doc": "",
+        "lineno": 30
+      },
+      {
+        "name": "_preload_cuda_runtime_libraries",
+        "kind": "function",
+        "doc": "",
+        "lineno": 74
+      },
+      {
+        "name": "_assert_runtime_contract",
+        "kind": "function",
+        "doc": "",
+        "lineno": 115
+      },
+      {
         "name": "_parse_args",
         "kind": "function",
         "doc": "",
-        "lineno": 13
+        "lineno": 126
       },
       {
         "name": "main",
         "kind": "function",
         "doc": "",
-        "lineno": 22
+        "lineno": 148
       }
     ]
   },
@@ -1682,35 +2517,47 @@
       {
         "name": "RuntimeConfig",
         "doc": "",
-        "lineno": 37,
+        "lineno": 76,
         "methods": [
           {
             "name": "resolved_vllm_model_path",
             "kind": "method",
             "doc": "",
-            "lineno": 78
+            "lineno": 160
           },
           {
             "name": "resolved_cosyvoice3_model_path",
             "kind": "method",
             "doc": "",
-            "lineno": 81
+            "lineno": 163
+          },
+          {
+            "name": "resolved_cosyvoice3_prompt_text",
+            "kind": "method",
+            "doc": "",
+            "lineno": 166
           },
           {
             "name": "from_env",
             "kind": "method",
             "doc": "",
-            "lineno": 85
+            "lineno": 176
           }
         ]
       }
     ],
     "functions": [
       {
+        "name": "_apply_runtime_defaults",
+        "kind": "function",
+        "doc": "",
+        "lineno": 12
+      },
+      {
         "name": "_load_env_file_once",
         "kind": "function",
         "doc": "",
-        "lineno": 11
+        "lineno": 49
       }
     ]
   },
@@ -1719,45 +2566,124 @@
     "module_doc": "",
     "classes": [
       {
+        "name": "_LocalInferenceExecutor",
+        "doc": "",
+        "lineno": 25,
+        "methods": [
+          {
+            "name": "__init__",
+            "kind": "method",
+            "doc": "",
+            "lineno": 26
+          },
+          {
+            "name": "do_inference",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 30
+          }
+        ]
+      },
+      {
         "name": "LiveKitRuntimeBridge",
         "doc": "",
-        "lineno": 59,
+        "lineno": 90,
         "methods": [
           {
             "name": "__post_init__",
             "kind": "method",
             "doc": "",
-            "lineno": 68
+            "lineno": 119
+          },
+          {
+            "name": "configure_debug_ingress_capture",
+            "kind": "method",
+            "doc": "",
+            "lineno": 146
+          },
+          {
+            "name": "ingress_lock_state",
+            "kind": "method",
+            "doc": "",
+            "lineno": 163
           },
           {
             "name": "_add_task",
             "kind": "method",
             "doc": "",
-            "lineno": 71
+            "lineno": 182
+          },
+          {
+            "name": "_normalize_egress_pcm_frame",
+            "kind": "method",
+            "doc": "",
+            "lineno": 187
           },
           {
             "name": "start",
             "kind": "async_method",
             "doc": "",
-            "lineno": 76
+            "lineno": 197
           },
           {
             "name": "stop",
             "kind": "async_method",
             "doc": "",
-            "lineno": 127
+            "lineno": 359
+          },
+          {
+            "name": "_record_debug_ingress_pcm",
+            "kind": "method",
+            "doc": "",
+            "lineno": 383
+          },
+          {
+            "name": "_flush_debug_ingress_capture",
+            "kind": "method",
+            "doc": "",
+            "lineno": 394
           },
           {
             "name": "_consume_remote_audio",
             "kind": "async_method",
             "doc": "",
-            "lineno": 150
+            "lineno": 409
+          },
+          {
+            "name": "_build_silero_vad",
+            "kind": "method",
+            "doc": "",
+            "lineno": 624
+          },
+          {
+            "name": "_build_turn_detector",
+            "kind": "method",
+            "doc": "",
+            "lineno": 640
+          },
+          {
+            "name": "_turn_finalize_delay_seconds",
+            "kind": "async_method",
+            "doc": "",
+            "lineno": 668
+          },
+          {
+            "name": "_pcm_frame_rms",
+            "kind": "method",
+            "doc": "",
+            "lineno": 706
+          },
+          {
+            "name": "_pcm_frame_peak",
+            "kind": "method",
+            "doc": "",
+            "lineno": 716
           },
           {
             "name": "_emit_runtime_pcm",
             "kind": "async_method",
             "doc": "",
-            "lineno": 178
+            "lineno": 725
           }
         ]
       }
@@ -1767,13 +2693,13 @@
         "name": "_b64url",
         "kind": "function",
         "doc": "",
-        "lineno": 16
+        "lineno": 47
       },
       {
         "name": "create_livekit_access_token",
         "kind": "function",
         "doc": "",
-        "lineno": 20
+        "lineno": 51
       }
     ]
   },
@@ -1783,28 +2709,94 @@
     "classes": [],
     "functions": [
       {
+        "name": "_describe_exception",
+        "kind": "function",
+        "doc": "",
+        "lineno": 21
+      },
+      {
+        "name": "_runpod_livekit_proxy_url",
+        "kind": "function",
+        "doc": "",
+        "lineno": 28
+      },
+      {
+        "name": "_client_livekit_url",
+        "kind": "function",
+        "doc": "",
+        "lineno": 41
+      },
+      {
+        "name": "_allowed_cors_origins",
+        "kind": "function",
+        "doc": "",
+        "lineno": 51
+      },
+      {
+        "name": "_failure_reason",
+        "kind": "function",
+        "doc": "",
+        "lineno": 63
+      },
+      {
         "name": "_runtime_readiness",
         "kind": "function",
         "doc": "",
-        "lineno": 15
+        "lineno": 70
       },
       {
         "name": "_runtime_telemetry",
         "kind": "function",
         "doc": "",
-        "lineno": 87
+        "lineno": 159
       },
       {
         "name": "_system_config",
         "kind": "function",
         "doc": "",
-        "lineno": 159
+        "lineno": 349
+      },
+      {
+        "name": "_pending_system_config",
+        "kind": "function",
+        "doc": "",
+        "lineno": 375
+      },
+      {
+        "name": "_set_runtime_ingress_filter",
+        "kind": "function",
+        "doc": "",
+        "lineno": 404
+      },
+      {
+        "name": "_pending_runtime_readiness",
+        "kind": "function",
+        "doc": "",
+        "lineno": 423
+      },
+      {
+        "name": "_reconcile_bootstrap_state",
+        "kind": "function",
+        "doc": "",
+        "lineno": 478
+      },
+      {
+        "name": "_set_bootstrap_phase",
+        "kind": "function",
+        "doc": "",
+        "lineno": 494
+      },
+      {
+        "name": "_bootstrap_runtime_background",
+        "kind": "async_function",
+        "doc": "",
+        "lineno": 499
       },
       {
         "name": "create_app",
         "kind": "function",
         "doc": "",
-        "lineno": 181
+        "lineno": 530
       }
     ]
   },
@@ -2124,28 +3116,34 @@
             "lineno": 78
           },
           {
-            "name": "ingest_partial",
+            "name": "_resample_input_audio",
             "kind": "method",
             "doc": "",
             "lineno": 90
           },
           {
-            "name": "ingest_final",
+            "name": "ingest_partial",
             "kind": "method",
             "doc": "",
             "lineno": 100
           },
           {
+            "name": "ingest_final",
+            "kind": "method",
+            "doc": "",
+            "lineno": 110
+          },
+          {
             "name": "ingest_audio",
             "kind": "method",
             "doc": "Process PCM16 mono audio and emit partial/final transcript events.",
-            "lineno": 111
+            "lineno": 121
           },
           {
             "name": "finalize",
             "kind": "method",
             "doc": "",
-            "lineno": 141
+            "lineno": 151
           }
         ]
       }
@@ -2155,7 +3153,7 @@
         "name": "_safe_json_loads",
         "kind": "function",
         "doc": "",
-        "lineno": 157
+        "lineno": 171
       }
     ]
   },
@@ -2178,49 +3176,55 @@
       {
         "name": "LiveKitTransport",
         "doc": "",
-        "lineno": 23,
+        "lineno": 31,
         "methods": [
           {
             "name": "__init__",
             "kind": "method",
             "doc": "",
-            "lineno": 24
+            "lineno": 32
           },
           {
             "name": "mark_bridge_connected",
             "kind": "method",
             "doc": "",
-            "lineno": 33
+            "lineno": 52
           },
           {
             "name": "mark_bridge_disconnected",
             "kind": "method",
             "doc": "",
-            "lineno": 36
+            "lineno": 55
           },
           {
             "name": "record_ingress_frame",
             "kind": "method",
             "doc": "",
-            "lineno": 39
+            "lineno": 58
           },
           {
             "name": "record_ingress_drop",
             "kind": "method",
             "doc": "",
-            "lineno": 43
+            "lineno": 62
+          },
+          {
+            "name": "start_egress_request",
+            "kind": "method",
+            "doc": "",
+            "lineno": 65
           },
           {
             "name": "record_egress_frame",
             "kind": "method",
             "doc": "",
-            "lineno": 46
+            "lineno": 74
           },
           {
             "name": "ingress_metrics",
             "kind": "method",
             "doc": "",
-            "lineno": 50
+            "lineno": 96
           }
         ]
       }
@@ -2240,43 +3244,55 @@
       {
         "name": "PCMClockSender",
         "doc": "",
-        "lineno": 19,
+        "lineno": 20,
         "methods": [
           {
             "name": "__init__",
             "kind": "method",
             "doc": "",
-            "lineno": 20
+            "lineno": 21
           },
           {
             "name": "depth",
             "kind": "method",
             "doc": "",
-            "lineno": 38
+            "lineno": 39
+          },
+          {
+            "name": "head_lease",
+            "kind": "method",
+            "doc": "",
+            "lineno": 42
           },
           {
             "name": "enqueue",
             "kind": "method",
             "doc": "",
-            "lineno": 41
+            "lineno": 48
+          },
+          {
+            "name": "clear",
+            "kind": "method",
+            "doc": "",
+            "lineno": 58
           },
           {
             "name": "_pop_fresh",
             "kind": "method",
             "doc": "",
-            "lineno": 51
+            "lineno": 62
           },
           {
             "name": "oldest_age_ms",
             "kind": "method",
             "doc": "",
-            "lineno": 63
+            "lineno": 74
           },
           {
             "name": "run_once",
             "kind": "async_method",
             "doc": "",
-            "lineno": 68
+            "lineno": 79
           }
         ]
       }
